@@ -2,8 +2,8 @@
 #define _TEST_COLLATZ_HPP
 
 #include "Map.hpp"
-//#include "DynamicMap.hpp"
-#include "DynamicMap2.hpp"
+#include "DynamicMap.hpp"
+//#include "DynamicMap2.hpp"
 #include <chrono>
 #include <iostream>
 #include <fstream>
@@ -27,7 +27,8 @@ namespace collatz {
 
 	void test(size_t threadcount, size_t blockcount, size_t itemcount, double arg) {
 		// output file
-		std::string outfileName = "colatz_" + std::to_string(threadcount) + "T_"
+		std::string folderName = "collatz1_" + std::to_string(std::thread::hardware_concurrency()) + "/";
+		std::string outfileName = folderName + "collatz_" + std::to_string(threadcount) + "T_"
 			+ std::to_string(blockcount) + "B_" + std::to_string(itemcount) + "I";
 		std::ofstream outfile;
 		outfile.open(outfileName);
