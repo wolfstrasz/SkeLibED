@@ -7,7 +7,7 @@
 //#include "DynamicMap3.hpp"
 //#include "DynamicMap4.hpp"
 //#include "DynamicMap5.hpp"
-#include "DynamicMap3.hpp"
+#include "DynamicMap.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -32,8 +32,8 @@ namespace collatz {
 
 	void test(size_t threadcount, size_t blockcount, size_t itemcount, double arg) {
 		// output file
-		std::string folderName = "collatz5_" + std::to_string(std::thread::hardware_concurrency()) + "/";
-		std::string outfileName = folderName + "collatz_" + std::to_string(threadcount) + "T_"
+		//std::string folderName = "collatz5_" + std::to_string(std::thread::hardware_concurrency()) + "/";
+		std::string outfileName = /*folderName + */"collatz_" + std::to_string(threadcount) + "T_"
 			+ std::to_string(blockcount) + "B_" + std::to_string(itemcount) + "I";
 		std::ofstream outfile;
 		outfile.open(outfileName);
@@ -73,8 +73,8 @@ namespace collatz {
 			std::cout << "DYNAMIC MAP Test: " << test << std::endl;
 			auto start = std::chrono::system_clock::now();
 
-		//	auto dynamicMap = DynamicMap(collatz_elemental, threadcount, itemcount / (blockcount * threadcount));
-			auto dynamicMap = DynamicMap(collatz_elemental);
+			auto dynamicMap = DynamicMap(collatz_elemental, threadcount, itemcount / (blockcount * threadcount));
+		//	auto dynamicMap = DynamicMap(collatz_elemental);
 		//	std::cout << "DYNAMIC MAP Test: " << test << std::endl;
 			dynamicMap(dynMapOut, in, arg);
 			//dynamicMap.stop();

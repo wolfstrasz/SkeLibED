@@ -1,8 +1,14 @@
 #!/bin/bash
 echo "TESTING NBODY"
 
-echo "10^6 items in 4 cores"
-echo "./run.out 3 8 16 10000 1000"
-./run.out 3 8 16 10000 20
-
+echo "./run.out 3 64 10 10000 2"
+./run.out 3 64 10 10000 2
+echo "./run.out 3 64 10 10000 4"
+./run.out 3 64 10 10000 4
+echo "./run.out 3 64 10 10000 6"
+./run.out 3 64 10 10000 6
+echo "./run.out 3 64 10 10000 8"
+./run.out 3 64 10 10000 8
+echo "./run.out 3 64 10 10000 10"
+./run.out 3 64 10 10000 10
 
