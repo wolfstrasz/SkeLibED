@@ -6,9 +6,11 @@
 //#include "TestCollatz.hpp"
 //#include "TestMandelbrot.hpp"
 //#include "TestNBody.hpp"
-#include "TestStencil.hpp"
+//#include "TestStencil.hpp"
 //#include "mandelbrot.hpp"
-#include "TestHeatDistribution.hpp"
+//#include "TestHeatDistribution.hpp"
+#include "TestStencilVector.hpp"
+#include "TestHeatDistributionVector.hpp"
 int main(int argc, char* argv[]) {
 
 	size_t func = 0;
@@ -24,7 +26,12 @@ int main(int argc, char* argv[]) {
 
 	if (func == -1) {
 		std::cout << "RUNNING: TEST STENCIL\n";
-		teststencil::test();
+		//teststencil::test();
+		return 0;
+	}
+	if (func == -2) {
+		std::cout << "RUNNING: TEST STENCIL VECTOR\n";
+		testStencilVector();
 		return 0;
 	}
 	thrc = strtol(argv[index++], nullptr, 0);
@@ -60,7 +67,8 @@ int main(int argc, char* argv[]) {
 		//	draw(thrc, blkc, ic, ic, iters, arg);
 	}
 	else if (func == 5){
-		testHeatDistribution(iters, thrc);
+		//testHeatDistribution(iters, thrc);
+		testHeatDistributionVector(iters, thrc);
 	}
 
 	return 0;

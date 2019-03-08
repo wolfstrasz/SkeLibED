@@ -1,7 +1,6 @@
 #ifndef TEST_STENCIL_HPP
 #define TEST_STENCIL_HPP
 
-//#include <Stencil.hpp>
 #include <chrono>
 #include <iostream>
 #include <fstream>
@@ -12,7 +11,7 @@
 #include "DynamicMap6.hpp"
 #include "Pixel.hpp"
 #include "TestPixel.hpp"
-#include "TestImg.hpp"
+//#include "TestImg.hpp"
 
 namespace teststencil {
 

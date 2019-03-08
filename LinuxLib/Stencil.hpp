@@ -53,6 +53,7 @@ public:
 				this->rows = rows;
 				this->cols = cols;
 			}
+
 		};
 		void * scoreboard;
 
@@ -166,6 +167,40 @@ public:
 
 		}
 
+		// VECTOR BORDER
+		template<typename T>
+		void threadVectorBorder(Scoreboard<std::vector<T>>* scoreboard, Pattern so, size_t startIndex, size_t endIndex) {
+			//std::cout << __PRETTY_FUNCTION__ << std::endl;
+			//std::cout << "HELLO\n" << startIndex << " "<< endIndex << std::endl;
+			T sum;
+			sum = 0;
+			//std::cout << sum << std::endl;
+			int xdim = scoreboard->rows;
+			int ydim = scoreboard->cols;
+			//std::cout << "DIMENSION = (" << xdim << ", " << ydim << ")\n";
+			//std::cout << "ROW INDEX = (" << startIndex << ", " << endIndex << ")\n";
+
+			//std::cout << "so. size  = " << so.size()<<std::endl;
+		
+			for (int rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
+				for (int colIndex = -so.getColumnLowerBoundary(); colIndex < scoreboard->cols - so.getColumnHigherBoundary(); colIndex++) {
+
+			//		std::cout << "for (" << rowIndex << ", " << colIndex << ")\n";
+					int factor = 0;
+					for (int offsetIndex = 0; offsetIndex < so.size(); offsetIndex++) {
+						int i = (so.rowOffset(offsetIndex) + rowIndex);
+						int j = (so.columnOffset(offsetIndex) + colIndex);
+						sum += scoreboard->input->at(i*xdim + j);
+						factor += so.itemWeight(offsetIndex);
+					}
+			//		std::cout << "we have: " << sum << "(sum), " << factor << "(factor)\n";
+					sum = sum / factor;
+			//		std::cout << "ending in sum: " << sum << std::endl;
+					scoreboard->output->at(rowIndex * xdim + colIndex) = sum;
+					sum -= sum;
+				}
+			}
+		}
 
 	public:
 		// Paranthesis operator: call function
@@ -179,9 +214,9 @@ public:
 			scoreboard = new Scoreboard<T>((T*)input, (T*)output, rows, cols);
 		//		std::cout << "rows = " << rows << " nthreads = " << nthreads << " rows \% nthreads = " << rows % nthreads << "\n";
 			size_t t = 0;
-			size_t higher_threads = (rows - so.getRowHigherBoundary() + so.getRowLowerBoundary()) % nthreads;
-			size_t rows_per_thread = (rows - so.getRowHigherBoundary() + so.getRowLowerBoundary()) / nthreads;
-			size_t rowStartIndex = -so.getRowLowerBoundary() ;
+			size_t higher_threads = rows % nthreads;
+			size_t rows_per_thread = rows  / nthreads;
+			size_t rowStartIndex = 0 ;
 			size_t rowEndIndex = 0;
 			// Run threads
 			// -----------
@@ -214,6 +249,10 @@ public:
 				}
 			}
 			else if (bh == BoundaryHandling::BORDER) {
+					size_t higher_threads = (rows - so.getRowHigherBoundary() + so.getRowLowerBoundary()) % nthreads;
+					size_t rows_per_thread = (rows - so.getRowHigherBoundary() + so.getRowLowerBoundary()) / nthreads;
+					size_t rowStartIndex = -so.getRowLowerBoundary();
+					size_t rowEndIndex = 0;
 					for (t = 0; t < higher_threads; t++) {
 						rowEndIndex = rowStartIndex + rows_per_thread + 1;
 						THREADS[t] = new std::thread(&StencilImplementation::threadBorder<T>, this, (Scoreboard<T>*)scoreboard, so, rowStartIndex, rowEndIndex);
@@ -249,6 +288,47 @@ public:
 			// ------------
 			for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
 
+		}
+		
+		template< typename T>
+		void operator()(std::vector<T> &output, std::vector<T> &input, Pattern so, BoundaryHandling bg = BoundaryHandling::NORMAL, int xdim = 0, int ydim = 0) {
+			std::thread *THREADS[nthreads];
+
+			scoreboard = new Scoreboard<std::vector<T>>(&input, &output, xdim, ydim);
+			//std::cout << "(" << sb->rows << ", " << sb->cols << ")\n";
+			/*for (int i = 0; i < sb->rows; i++) {
+				
+				for (int j = 0; j < sb->cols; j++) {
+					std::cout << (sb->input)->at(i*xdim + j) << " ";
+				}
+				std::cout << std::endl;
+			}*/
+
+			// USE BORDER
+			size_t t = 0;
+			size_t higher_threads = (xdim - so.getRowHigherBoundary() + so.getRowLowerBoundary()) % nthreads;
+			size_t rows_per_thread = (xdim - so.getRowHigherBoundary() + so.getRowLowerBoundary()) / nthreads;
+			size_t rowStartIndex = -so.getRowLowerBoundary();
+			size_t rowEndIndex = 0;
+
+			//std::cout << "use border\n";
+			for (t = 0; t < higher_threads; t++) {
+				rowEndIndex = rowStartIndex + rows_per_thread + 1;
+				THREADS[t] = new std::thread(&StencilImplementation::threadVectorBorder<T>, this, (Scoreboard<std::vector<T>>*)scoreboard, so, rowStartIndex, rowEndIndex);
+				//	 std::cout << "f1 -> (" << rowStartIndex << ", " << rowEndIndex << ")\n";
+
+				rowStartIndex += rows_per_thread + 1;
+			}
+
+			for (; t < nthreads; t++) {
+				rowEndIndex = rowStartIndex + rows_per_thread;
+				THREADS[t] = new std::thread(&StencilImplementation::threadVectorBorder<T>, this, (Scoreboard<std::vector<T>>*)scoreboard, so, rowStartIndex, rowEndIndex);
+				// std::cout << "f2 -> (" << rowStartIndex << ", " << rowEndIndex << ")\n";
+
+				rowStartIndex += rows_per_thread;
+			}
+
+			for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
 		}
 
 		// Friend Functions for Stencil Implementation Class
