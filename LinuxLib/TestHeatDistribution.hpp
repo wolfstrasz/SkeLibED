@@ -10,7 +10,7 @@
 #include <math.h>
 /* uses Jacobi method to solve a sparse system of linear equations */
 /* to solve we need conditions at the border to be kept constant */
-#define MAX_PLATE_DIM 1024
+#define MAX_PLATE_DIM 256
 float boardIn[MAX_PLATE_DIM][MAX_PLATE_DIM];			// iterative simulation would require us to switch betweeen Input and Output
 float boardOut[MAX_PLATE_DIM][MAX_PLATE_DIM];
 Pattern heatPattern;

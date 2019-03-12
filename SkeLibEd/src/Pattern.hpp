@@ -13,8 +13,15 @@ private:
 	int m_rowMin, m_rowMax, m_colMin, m_colMax;
 
 public:
+	bool normalization = true;
 	Pattern() {
-
+		m_rowOffsets = std::vector <int>(0);
+		m_colOffsets = std::vector <int>(0);
+		m_weights = std::vector <int>(0);
+		m_rowMin = 0;
+		m_rowMax = 0;
+		m_colMax = 0;
+		m_colMin = 0;
 	}
 	void add(int row, int col, int weight = 1) {
 
@@ -41,13 +48,17 @@ public:
 	int itemWeight(int i) {
 		return m_weights[i];
 	}
-
+	void cancelNormalization() {
+		normalization = false;
+	}
+	void addNormalization() {
+		normalization = true;
+	}
 	int getRowLowerBoundary() { return m_rowMin; }
 	int getRowHigherBoundary() { return m_rowMax; }
 	int getColumnLowerBoundary() { return m_colMin; }
 	int getColumnHigherBoundary() { return m_colMax; }
 };
-
 
 
 #endif // !_PATTERN_HPP

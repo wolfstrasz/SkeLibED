@@ -3,16 +3,16 @@
 
 #include "Pixel.hpp"
 #include <string.h>
-FILE *outfile;
-FILE *infile;
+
 #define HYRES 100
 #define HXRES 100
 #define FORMAT 255
 
 void testImgWrite() {
-
+	FILE *outfile;
+	FILE *infile;
 	std::cout << " TEST IMG WRITE\n";
-	outfile = fopen("custompicture100.ppm", "w");
+	outfile = fopen("custompicture1000.ppm", "w");
 
 	psled::pPixel img[HXRES][HYRES];
 
@@ -21,7 +21,7 @@ void testImgWrite() {
 		| B | R |
 		| G | W |
 		_________
-	
+
 	*/
 	std::cout << "new img" << std::endl;
 	for (int i = 0; i < HXRES; i++){
@@ -85,7 +85,7 @@ void testImgRead() {
 	//		fputc((char)img[i][j].b, outfile);
 	//	}
 	//}
-	
+
 	std::cout << "reading colors\n";
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
