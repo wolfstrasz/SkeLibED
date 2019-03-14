@@ -42,11 +42,7 @@ int main(int argc, char* argv[]) {
 		test_blur::test();
 		return 0;
 	}
-	if (func == -4) {
-		std::cout << "RUNNING: GOL TEST\n";
-		goltest();
-		return 0;
-	}
+	
 	thrc = strtol(argv[index++], nullptr, 0);
 	if (func != 5)
 	blkc = strtol(argv[index++], nullptr, 0);
@@ -77,6 +73,9 @@ int main(int argc, char* argv[]) {
 	else if (func == 5){
 		testHeatDistribution(iters, thrc);
 		thdv::testHeatDistributionVector(iters, thrc);
+	}
+	else if (func == 6) {
+		goltest(thrc, blkc, ic, iters, arg);
 	}
 
 	return 0;

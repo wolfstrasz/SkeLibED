@@ -16,36 +16,35 @@
 #include "Stencil.hpp"
 #include "GameOfLife.hpp"
 
-std::vector<GoL> golIn = std::vector<GoL>(GOLX * GOLY);
-std::vector<GoL> golOut = std::vector<GoL>(GOLX * GOLY);
+std::vector<GoL> golIn;
+std::vector<GoL> golOut;
 Pattern golPattern;
 
 
-void golPrintOut() {
+void golPrintOut(int xdim, int ydim) {
 	std::cout << "GOL OUT: \n";
-	for (int i = 0; i < GOLX; i++) {
-		for (int j = 0; j < GOLY; j++) {
-			if (golOut.at(i * GOLY + j).alive) std::cout << 1 << " ";
+	for (int i = 0; i < xdim; i++) {
+		for (int j = 0; j < ydim; j++) {
+			if (golOut.at(i * ydim + j).alive) std::cout << 1 << " ";
 			else std::cout << 0 << " ";
 		}
 		std::cout << std::endl;
 	}
 }
 
-void golPrintIn() {
+void golPrintIn(int xdim, int ydim) {
 	std::cout << "GOL IN: \n";
-	for (int i = 0; i < GOLX; i++) {
-		for (int j = 0; j < GOLY; j++) {
-			if (golIn.at(i * GOLY + j).alive) std::cout << 1 << " ";
+	for (int i = 0; i < xdim; i++) {
+		for (int j = 0; j < ydim; j++) {
+			if (golIn.at(i * ydim + j).alive) std::cout << 1 << " ";
 			else std::cout << 0 << " ";
 		}
 		std::cout << std::endl;
 	}
 }
 
-#define PATTERNMAXSIZE 3
 
-void initGolPattern() {
+void initGolPattern(int pat_size) {
 	//golPattern.add(-1, -1);
 	//golPattern.add(-1, 0);
 	//golPattern.add(-1, 1);
@@ -57,78 +56,170 @@ void initGolPattern() {
 
 	// INCREASE
 	golPattern = Pattern();
-	for (int i = 1 - PATTERNMAXSIZE; i < PATTERNMAXSIZE; i++) {
-		for (int j = 1 - PATTERNMAXSIZE; j < PATTERNMAXSIZE; j++) {
+	for (int i = 1 - pat_size; i < pat_size; i++) {
+		for (int j = 1 - pat_size; j < pat_size; j++) {
 			golPattern.add(i, j);
 		}
 	}
 }
 
-void initGOL() {
-	golIn = std::vector<GoL>(GOLX * GOLY);
-	golOut = std::vector<GoL>(GOLX * GOLY);
-	int xItem = (GOLX / 2);
-	int yItem = (GOLY / 2);
-	golIn.at(xItem * GOLY + yItem) = GoL(true);
+void initGOL(int xdim, int ydim) {
+	golIn = std::vector<GoL>(xdim * ydim);
+	golOut = std::vector<GoL>(xdim * ydim);
+	int xItem = (xdim / 2);
+	int yItem = (ydim / 2);
+	golIn.at(xItem * ydim + yItem) = GoL(true);
 	xItem--;
-	golIn.at(xItem * GOLY + yItem) = GoL(true);
+	golIn.at(xItem * ydim + yItem) = GoL(true);
 	yItem--;
-	golIn.at(xItem * GOLY + yItem) = GoL(true);
+	golIn.at(xItem * ydim + yItem) = GoL(true);
 	//golPrintIn();
 	//golPrintOut();
 }
-void goltest() {
+void goltest(int threads, int xdim, int ydim, int iter, int pat_size) {
 	
-	initGolPattern();
-	initGOL();
+	initGolPattern(pat_size);
+	initGOL(xdim, ydim);
+	auto golStencil = Stencil(threads);
+	
+	double overalltime = 0.0f;
+	int tests = 1;
 
-	
-	auto golStencil = Stencil(GOLTHREADS);
+	//golPrintIn(xdim,ydim);
+	//golPrintOut(xdim, ydim);
 
 	// TEST NORMAL GOL TIME
 	//std::cout << "RUNNING NORMAL GOL" << std::endl;
-	auto start = std::chrono::system_clock::now();
-	for (int i = 0; i < GOLITERS; i += 2) {
+	overalltime = 0.0f;
+	for (int t = 0; t < tests; t++) {
+		std::cout << "Test (" << t << ")...\n";
+		initGOL(xdim, ydim);
+		auto start = std::chrono::system_clock::now();
+		for (int i = 0; i < iter; i += 2) {
 
-		// iterate forwards
-		golStencil(golOut, golIn, golPattern, PSLED_NORMAL, GOLX, GOLY);
+			// iterate forwards
+			golStencil(golOut, golIn, golPattern, PSLED_NORMAL, xdim, ydim);
+	//		golPrintOut(xdim, ydim);
 
-	//	golPrintOut();
-		// iterate backwards
-		golStencil(golIn, golOut, golPattern, PSLED_NORMAL, GOLX, GOLY);
-		//golPrintIn();
+			// iterate backwards
+			golStencil(golIn, golOut, golPattern, PSLED_NORMAL, xdim, ydim);
+	//		golPrintIn(xdim,ydim);
 
+		}
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double, std::milli> time = end - start;
+		overalltime += time.count();
 	}
-	auto end = std::chrono::system_clock::now();
-	std::chrono::duration<double, std::milli> time = end - start;
-	std::cout << "Stencil::NORMAL::GOL::" << std::to_string(time.count()) << std::endl;
+	std::cout << "Stencil::NORMAL::GOL::" << std::to_string(overalltime / tests) << std::endl;
 
-	//golPrintIn();
+	//golPrintIn(xdim, ydim);
 
-	initGOL();
-
+	
+	overalltime = 0.0f;
 	// TEST NORMAL OPT 1 GOL TIME
 	//std::cout << "RUNNING NORMAL OPT GOL" << std::endl;
+	for (int t = 0; t < tests; t++) {
+		std::cout << "Test (" << t << ")...\n";
+		initGOL(xdim, ydim);
+		auto start = std::chrono::system_clock::now();
+		for (int i = 0; i < iter; i += 2) {
 
-	start = std::chrono::system_clock::now();
-	for (int i = 0; i < GOLITERS; i += 2) {
+			// iterate forwards
+			golStencil(golOut, golIn, golPattern, PSLED_NORMAL_OPT1, xdim, ydim);
 
-		//std::cout << "FIRST ITER\n";
-		// iterate forwards
-		golStencil(golOut, golIn, golPattern, PSLED_NORMAL_OPT1, GOLX, GOLY);
+			//	golPrintOut();
+				// iterate backwards
+			golStencil(golIn, golOut, golPattern, PSLED_NORMAL_OPT1, xdim, ydim);
+			//golPrintIn();
 
-	//	std::cout << "Second ITER\n";
-		//	golPrintOut();
-			// iterate backwards
-		golStencil(golIn, golOut, golPattern, PSLED_NORMAL_OPT1, GOLX, GOLY);
-		//golPrintIn();
-
+		}
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double, std::milli> time = end - start;
+		overalltime += time.count();
 	}
-	end = std::chrono::system_clock::now();
-	time = end - start;
-	std::cout << "Stencil::NORMAL_OPT_!::GOL::" << std::to_string(time.count()) << std::endl;
+	std::cout << "Stencil::NORMAL_OPT_1::GOL::" << std::to_string(overalltime / tests) << std::endl;
 
-	//golPrintIn();
+//	golPrintIn(xdim,ydim);
+
+
+	overalltime = 0.0f;
+	// TEST NORMAL OPT 2 GOL TIME
+	//std::cout << "RUNNING NORMAL OPT GOL" << std::endl;
+	for (int t = 0; t < tests; t++) {
+		std::cout << "Test (" << t << ")...\n";
+		initGOL(xdim, ydim);
+		auto start = std::chrono::system_clock::now();
+		for (int i = 0; i < iter; i += 2) {
+
+			// iterate forwards
+			golStencil(golOut, golIn, golPattern, PSLED_NORMAL_OPT2, xdim, ydim);
+
+			//	golPrintOut();
+				// iterate backwards
+			golStencil(golIn, golOut, golPattern, PSLED_NORMAL_OPT2, xdim, ydim);
+			//golPrintIn();
+
+		}
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double, std::milli> time = end - start;
+		overalltime += time.count();
+	}
+	std::cout << "Stencil::NORMAL_OPT_2::GOL::" << std::to_string(overalltime / tests) << std::endl;
+//	golPrintIn(xdim,ydim);
+
+
+	overalltime = 0.0f;
+	// TEST NORMAL OPT 3 GOL TIME
+	//std::cout << "RUNNING NORMAL OPT GOL" << std::endl;
+	for (int t = 0; t < tests; t++) {
+		std::cout << "Test (" << t << ")...\n";
+		initGOL(xdim, ydim);
+		auto start = std::chrono::system_clock::now();
+		for (int i = 0; i < iter; i += 2) {
+
+			// iterate forwards
+			golStencil(golOut, golIn, golPattern, PSLED_NORMAL_OPT3, xdim, ydim);
+
+			//	golPrintOut();
+				// iterate backwards
+			golStencil(golIn, golOut, golPattern, PSLED_NORMAL_OPT3, xdim, ydim);
+			//golPrintIn();
+
+		}
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double, std::milli> time = end - start;
+		overalltime += time.count();
+	}
+
+	std::cout << "Stencil::NORMAL_OPT_3::GOL::" << std::to_string(overalltime / tests) << std::endl;
+	//golPrintIn(xdim,ydim);
+
+	overalltime = 0.0f;
+	// TEST NORMAL OPT 4 GOL TIME
+	//std::cout << "RUNNING NORMAL OPT GOL" << std::endl;
+	for (int t = 0; t < tests; t++) {
+		std::cout << "Test (" << t << ")...\n";
+		initGOL(xdim, ydim);
+		auto start = std::chrono::system_clock::now();
+		for (int i = 0; i < iter; i += 2) {
+
+			// iterate forwards
+			golStencil(golOut, golIn, golPattern, PSLED_NORMAL_OPT4, xdim, ydim);
+
+			//	golPrintOut();
+				// iterate backwards
+			golStencil(golIn, golOut, golPattern, PSLED_NORMAL_OPT4, xdim, ydim);
+			//golPrintIn();
+
+		}
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double, std::milli> time = end - start;
+		overalltime += time.count();
+	}
+
+	std::cout << "Stencil::NORMAL_OPT_4::GOL::" << std::to_string(overalltime / tests) << std::endl;
+
+	//golPrintIn(xdim,ydim);
 
 }
 

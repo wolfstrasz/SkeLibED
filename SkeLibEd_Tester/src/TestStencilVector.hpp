@@ -8,8 +8,8 @@
 
 namespace tsv {
 
-#define tsvYDSIZE 6
-#define tsvXDSIZE 5
+#define tsvYDSIZE 10
+#define tsvXDSIZE 10
 #define tsvTHREADCOUNT 4
 
 	int curr_tests = 0;
@@ -212,19 +212,7 @@ namespace tsv {
 	// Testing
 	// -----------------------------------------------------------
 	void allTests() {
-		// TEST: NORMAL
-		// ----------------------------------------------------------
-		std::cout << "Sequential: NORMAL \n";
-		sequentialNormalTest();
-		std::cout << "Parallel:   NORMAL \n";
-		stencil(pout, in, pattern, PSLED_NORMAL, tsvXDSIZE, tsvYDSIZE);
-		equivalenceCheck();
-		// printInput();
-		// printSeqentialOutput();
-		// printParallelOutput();
-		std::cout << "\n###########################################\n";
-		clearOutputs();
-
+	
 		// TEST: WRAP
 		// ----------------------------------------------------------
 		std::cout << "Sequential: WRAP \n";
@@ -264,16 +252,68 @@ namespace tsv {
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
-		// TEST: BORDER
+		// TEST: NORMAL
+		// ----------------------------------------------------------
+		std::cout << "Sequential: NORMAL \n";
+		sequentialNormalTest();
+		std::cout << "Parallel:   NORMAL \n";
+		stencil(pout, in, pattern, PSLED_NORMAL, tsvXDSIZE, tsvYDSIZE);
+		equivalenceCheck();
+		// printInput();
+		// printSeqentialOutput();
+		// printParallelOutput();
+		std::cout << "\n###########################################\n";
+		clearOutputs();
+
+		// TEST: NORMAL OPT 1
 		// ----------------------------------------------------------
 		std::cout << "Sequential: NORMAL \n";
 		sequentialNormalTest();
 		std::cout << "Parallel:   NORMAL OPT 1\n";
 		stencil(pout, in, pattern, PSLED_NORMAL_OPT1, tsvXDSIZE, tsvYDSIZE);
 		equivalenceCheck();
-			printInput();
-			printSeqentialOutput();
-			printParallelOutput();
+		//	printInput();
+		//	printSeqentialOutput();
+		//	printParallelOutput();
+		std::cout << "\n###########################################\n";
+		clearOutputs();
+
+		// TEST: NORMAL OPT 2
+		// ----------------------------------------------------------
+		std::cout << "Sequential: NORMAL \n";
+		sequentialNormalTest();
+		std::cout << "Parallel:   NORMAL OPT 2\n";
+		stencil(pout, in, pattern, PSLED_NORMAL_OPT2, tsvXDSIZE, tsvYDSIZE);
+		equivalenceCheck();
+		//printInput();
+		//printSeqentialOutput();
+		//printParallelOutput();
+		std::cout << "\n###########################################\n";
+		clearOutputs();
+
+		// TEST: NORMAL OPT 3
+		// ----------------------------------------------------------
+		std::cout << "Sequential: NORMAL \n";
+		sequentialNormalTest();
+		std::cout << "Parallel:   NORMAL OPT 3\n";
+		stencil(pout, in, pattern, PSLED_NORMAL_OPT3, tsvXDSIZE, tsvYDSIZE);
+		equivalenceCheck();
+	//	printInput();
+	//	printSeqentialOutput();
+	//	printParallelOutput();
+		std::cout << "\n###########################################\n";
+		clearOutputs();
+
+		// TEST: NORMAL OPT 4
+		// ----------------------------------------------------------
+		std::cout << "Sequential: NORMAL \n";
+		sequentialNormalTest();
+		std::cout << "Parallel:   NORMAL OPT 4\n";
+		stencil(pout, in, pattern, PSLED_NORMAL_OPT4, tsvXDSIZE, tsvYDSIZE);
+		equivalenceCheck();
+		printInput();
+		printSeqentialOutput();
+		printParallelOutput();
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 	}
