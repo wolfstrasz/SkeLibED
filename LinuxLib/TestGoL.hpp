@@ -5,6 +5,7 @@
 #define GOLY 5000
 #define GOLTHREADS 4
 #define GOLITERS 1
+#define MAX_TESTS_GOL 10
 #include <iostream>
 #include <string>
 #include <vector>
@@ -83,11 +84,34 @@ void goltest(int threads, int xdim, int ydim, int iter, int pat_size) {
 	auto golStencil = Stencil(threads);
 	
 	double overalltime = 0.0f;
-	int tests = 1;
+	int tests = MAX_TESTS_GOL;
 
 	//golPrintIn(xdim,ydim);
 	//golPrintOut(xdim, ydim);
+	overalltime = 0.0f;
+	// TEST NORMAL BORDER GOL TIME
+	//std::cout << "RUNNING NORMAL OPT GOL" << std::endl;
+	for (int t = 0; t < tests; t++) {
+		std::cout << "Test (" << t << ")...\n";
+		initGOL(xdim, ydim);
+		auto start = std::chrono::system_clock::now();
+		for (int i = 0; i < iter; i += 2) {
 
+			// iterate forwards
+			golStencil(golOut, golIn, golPattern, PSLED_BORDER, xdim, ydim);
+
+			//	golPrintOut();
+				// iterate backwards
+			golStencil(golIn, golOut, golPattern, PSLED_BORDER, xdim, ydim);
+			//golPrintIn();
+
+		}
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double, std::milli> time = end - start;
+		overalltime += time.count();
+	}
+
+	std::cout << "Stencil::BORDER::GOL::" << std::to_string(overalltime / tests) << std::endl;
 	// TEST NORMAL GOL TIME
 	//std::cout << "RUNNING NORMAL GOL" << std::endl;
 	overalltime = 0.0f;
@@ -219,6 +243,8 @@ void goltest(int threads, int xdim, int ydim, int iter, int pat_size) {
 
 	std::cout << "Stencil::NORMAL_OPT_4::GOL::" << std::to_string(overalltime / tests) << std::endl;
 
+
+	
 	//golPrintIn(xdim,ydim);
 
 }

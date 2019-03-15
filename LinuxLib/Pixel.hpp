@@ -3,12 +3,12 @@
 #include <cmath>
 namespace psled {
 
-	struct pPixel {
+	struct Pixel {
 		int r, g, b;
-		pPixel(int r = 0, int g = 0, int b = 0) { this->r = r; this->g = g; this->b = b; }
+		Pixel(int r = 0, int g = 0, int b = 0) { this->r = r; this->g = g; this->b = b; }
 		bool non = true;
 		// Overload operators
-		struct pPixel& operator+= (const pPixel& rhs) {
+		struct Pixel& operator+= (const Pixel& rhs) {
 		//	std::cout << "  (NONI  = " << int(non) << ")  ";
 			// if (non) {
 			// 	r = rhs.r;
@@ -41,8 +41,8 @@ namespace psled {
 			 b += rhs.b;
 			return *this;
 		}
-		struct pPixel& operator*= (const int &k) { r *= k; g *= k; b *= k; return *this; }
-		struct pPixel& operator/= (const int &k) {
+		struct Pixel& operator*= (const int &k) { r *= k; g *= k; b *= k; return *this; }
+		struct Pixel& operator/= (const int &k) {
 		//	if (r < 0 ) std::cout << "Old R: " << r << " New R:";
 			r /= k;
 			if (r < 0) r = -r;
@@ -61,8 +61,8 @@ namespace psled {
 		//	b +=256;
 		//	b %=256;
 			 return *this; }
-		struct pPixel& operator-= (const pPixel& rhs) { r -= rhs.r; g -= rhs.g; b -= rhs.b; return *this; }
-		// void operator=(const pPixel &p) {
+		struct Pixel& operator-= (const Pixel& rhs) { r -= rhs.r; g -= rhs.g; b -= rhs.b; return *this; }
+		// void operator=(const Pixel &p) {
 		// //	std::cout << "  (NONI  => " << int(non) << ")  ";
 		// 	non = false;
 		// 	r = p.r;
@@ -83,12 +83,12 @@ namespace psled {
 	};
 
 	// Overload binary operators
-	pPixel operator+(pPixel lhs, const pPixel& rhs) { return lhs += rhs; }
-	pPixel operator-(pPixel lhs, const pPixel& rhs) { return lhs -= rhs; }
-	pPixel operator*(pPixel lhs, const int k) { return lhs *= k; }
-	pPixel operator*(const int k, pPixel rhs) { return rhs *= k; }
-	pPixel operator/(pPixel lhs, const int k) { return lhs /= k; }
-	std::ostream & operator << (std::ostream &out, const pPixel &p)
+	Pixel operator+(Pixel lhs, const Pixel& rhs) { return lhs += rhs; }
+	Pixel operator-(Pixel lhs, const Pixel& rhs) { return lhs -= rhs; }
+	Pixel operator*(Pixel lhs, const int k) { return lhs *= k; }
+	Pixel operator*(const int k, Pixel rhs) { return rhs *= k; }
+	Pixel operator/(Pixel lhs, const int k) { return lhs /= k; }
+	std::ostream & operator << (std::ostream &out, const Pixel &p)
 	{
 		out << "(R, G, B | NON) = (" << p.r << ", " << p.g << ", " << p.b << "| " << (int)p.non << ") ";
 

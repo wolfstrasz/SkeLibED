@@ -5,8 +5,8 @@
 void testPixel() {
 
 	// Initialise pixels
-	psled::pPixel a = psled::pPixel(10, 10, 10);
-	psled::pPixel b;
+	psled::Pixel a = psled::Pixel(10, 10, 10);
+	psled::Pixel b;
 	b.r = 11;
 	b.g = 22;
 	b.b = 33;

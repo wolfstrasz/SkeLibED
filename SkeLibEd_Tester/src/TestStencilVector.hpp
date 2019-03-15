@@ -85,7 +85,7 @@ namespace tsv {
 					if (ro < 0 || ro >= tsvXDSIZE || co < 0 || co >= tsvYDSIZE)
 						continue;
 					c += pattern.itemWeight(k);
-					sum += in.at(ro * tsvYDSIZE + co);
+					sum += in.at(ro * tsvYDSIZE + co) * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 				sout.at(i* tsvYDSIZE + j) = sum;
@@ -102,7 +102,7 @@ namespace tsv {
 					int ro = ((i + pattern.rowOffset(k) + tsvXDSIZE) % tsvXDSIZE);
 					int co = ((j + pattern.columnOffset(k) + tsvYDSIZE) % tsvYDSIZE);
 					c += pattern.itemWeight(k);
-					sum += in.at(ro * tsvYDSIZE + co);
+					sum += in.at(ro * tsvYDSIZE + co) * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 				sout.at(i* tsvYDSIZE + j) = sum;
@@ -125,7 +125,7 @@ namespace tsv {
 					int ro = i + pattern.rowOffset(k);
 					int co = j + pattern.columnOffset(k);
 					c += pattern.itemWeight(k);
-					sum += in.at(ro * tsvYDSIZE + co);
+					sum += in.at(ro * tsvYDSIZE + co) * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 				sout.at(i* tsvYDSIZE + j) = sum;
@@ -144,7 +144,7 @@ namespace tsv {
 					int co = pattern.columnOffset(k) + j;
 					if (co < 0 || co >= tsvYDSIZE) co = j - pattern.columnOffset(k);
 					c += pattern.itemWeight(k);
-					sum += in.at(ro * tsvYDSIZE + co);
+					sum += in.at(ro * tsvYDSIZE + co) * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 				sout.at(i* tsvYDSIZE + j) = sum;

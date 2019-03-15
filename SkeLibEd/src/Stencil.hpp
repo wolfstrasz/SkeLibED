@@ -123,7 +123,7 @@ public:
 						// wrapping
 						i = (i + xdim) % xdim; // addition required because -4 % 5 is not = 1 by definition of % operator
 						j = (j + ydim) % ydim;
-						sum += scoreboard->input->at(i*ydim + j);
+						sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 						factor += pattern.itemWeight(offsetIndex);
 					}
 					sum = sum / *factor_ptr;
@@ -185,7 +185,7 @@ public:
 						if (i < 0 || i >= xdim) i = (rowIndex - pattern.rowOffset(offsetIndex));
 						if (j < 0 || j >= ydim) j = (colIndex - pattern.columnOffset(offsetIndex));
 
-						sum += scoreboard->input->at(i*ydim + j);
+						sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 						factor += pattern.itemWeight(offsetIndex);
 					}
 					sum = sum / *factor_ptr;
@@ -238,28 +238,20 @@ public:
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			for (int rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
 				for (int colIndex = 0; colIndex < scoreboard->cols; colIndex++) {
+					sum = 0;
 					factor = 0;
-				//	std::cout << "\n\n\n =============================================================================================\n";
-			//		std::cout << "GOL Main(" << rowIndex << ", " << colIndex << ") : " << scoreboard->input->at(rowIndex * ydim + colIndex) << std::endl;
-
-				//	std::cout << "Zero (" << rowIndex << ", " << colIndex << ") : " << sum << std::endl;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
-			//			std::cout << "\n";
 
 						int i = (pattern.rowOffset(offsetIndex) + rowIndex);
 						int j = (pattern.columnOffset(offsetIndex) + colIndex);
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-				//			std::cout << "OS (" << pattern.rowOffset(offsetIndex) << ", " << pattern.columnOffset(offsetIndex) << ")  ";
-				//			std::cout << "GoL (" << i << ", " << j << ") : " << scoreboard->input->at(i * ydim + j) << std::endl;
-							sum += scoreboard->input->at(i*ydim + j);
-				//			std::cout << "Sum (" << rowIndex << ", " << colIndex << ") : " << sum << std::endl;
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
 					sum = sum / *factor_ptr;
-				//	std::cout << "Sum Out(" << rowIndex << ", " << colIndex << ") : " << sum << std::endl;
 					scoreboard->output->at(rowIndex * ydim + colIndex) = sum;
 					sum -= sum;
 				}
@@ -282,8 +274,11 @@ public:
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			int rowIndex = startIndex;
 
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -295,7 +290,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -306,7 +301,7 @@ public:
 			}
 
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
 				for (int colIndex = 0; colIndex < colLowBoundary ; colIndex++) {
 					factor = 0;
 					sum = 0;
@@ -318,7 +313,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -349,7 +344,7 @@ public:
 
 
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -361,7 +356,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -389,6 +384,9 @@ public:
 			int rowHighBoundary = scoreboard->rows - pattern.getRowHigherBoundary() ;
 			int rowIndex = startIndexBL;
 
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
 			// RUN ON BORDER MODE
 			// -----------------------------
 			for (; rowIndex < endIndexBL; rowIndex++) {
@@ -412,7 +410,7 @@ public:
 			// --------------------------------------
 			rowIndex = startIndex;
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -424,7 +422,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -435,7 +433,7 @@ public:
 			}
 
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
 				for (int colIndex = 0; colIndex < colLowBoundary; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -447,7 +445,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -479,7 +477,7 @@ public:
 
 
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					factor = 0;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
@@ -490,7 +488,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -517,8 +515,12 @@ public:
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			int rowIndex = startIndex;
 
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
+
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -530,7 +532,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -542,7 +544,7 @@ public:
 			sum = 0;
 			factor = 0;
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
 				for (int colIndex = 0; colIndex < colLowBoundary; colIndex++) {
 					factor = 0;
 					sum = 0;
@@ -554,7 +556,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -588,7 +590,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -599,9 +601,8 @@ public:
 			}
 			sum = 0;
 			factor = 0;
-
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -614,7 +615,7 @@ public:
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
 							sum += scoreboard->input->at(i*ydim + j);
-							factor += pattern.itemWeight(offsetIndex);
+							factor += pattern.itemWeight(offsetIndex)* pattern.itemWeight(offsetIndex);
 						}
 					}
 					sum = sum / *factor_ptr;
@@ -639,9 +640,11 @@ public:
 			int factor;
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			int rowIndex = startIndex;
-
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -653,7 +656,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -664,7 +667,7 @@ public:
 			}
 
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
 				for (int colIndex = 0; colIndex < colLowBoundary; colIndex++) {
 					factor = 0;
 					sum = 0;
@@ -676,7 +679,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -707,7 +710,7 @@ public:
 
 
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -719,7 +722,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -770,18 +773,11 @@ public:
 			for (int rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
 				for (int colIndex = -pattern.getColumnLowerBoundary(); colIndex < scoreboard->cols - pattern.getColumnHigherBoundary(); colIndex++) {
 					sum = 0;
-			//		std::cout << "\n\n\n =============================================================================================\n";
-			//		 std::cout << "Pixel Main(" << rowIndex << ", " << colIndex << ") color: " << scoreboard->input->at(rowIndex * ydim + colIndex) << std::endl;
-			//		std::cout << " Zero (" << rowIndex << ", " << colIndex << ") color: " << sum <<  " and Factor = " << factor << std::endl;
 //
 					factor = 0;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
-							// std::cout << "\n";
 						int i = (pattern.rowOffset(offsetIndex) + rowIndex);
 						int j = (pattern.columnOffset(offsetIndex) + colIndex);
-				//		std::cout << "OS (" << pattern.rowOffset(offsetIndex) << ", " << pattern.columnOffset(offsetIndex) << ", " << pattern.itemWeight(offsetIndex) << ")  ";
-			//			std::cout << "Pixel (" << i << ", " << j << ") color: " << scoreboard->input->at(i * ydim + j) << std::endl;
-						// std::cout << "WITH weight = " << scoreboard->pattern.itemWeight(offsetIndex)<<std::endl;
 						sum += scoreboard->input->at(i*ydim + j) * scoreboard->pattern.itemWeight(offsetIndex);
 						factor += pattern.itemWeight(offsetIndex);
 
@@ -1056,7 +1052,7 @@ public:
 
 
 				// run as ONLYBORDER
-			//	for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
+			for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
 				int items_in_cows = ydim + pattern.getColumnLowerBoundary() - pattern.getRowHigherBoundary();
 				int items_in_rows = xdim + pattern.getRowLowerBoundary() - pattern.getRowHigherBoundary();
 				int borderitems = xdim * ydim - items_in_cows * items_in_rows;
@@ -1095,6 +1091,7 @@ public:
 				}
 			}
 			for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
+			//std::cout << "Finished\n";
 		}
 
 		// Friend Functions for Stencil Implementation Class

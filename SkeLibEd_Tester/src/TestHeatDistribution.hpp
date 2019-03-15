@@ -45,8 +45,8 @@ void initPlate() {
 }
 
 
-psled::pPixel convertToHeatMap(float value, float minimum = 1.0f, float maximum = 3.0f) {
-	psled::pPixel k;
+psled::Pixel convertToHeatMap(float value, float minimum = 1.0f, float maximum = 3.0f) {
+	psled::Pixel k;
 	float halfmax = (minimum + maximum) / 2;
 	float ratio = 2 * (value - minimum) / (maximum - minimum);
 
@@ -62,7 +62,7 @@ void printPPM(std::string name, int iters, int threads) {
 	fprintf(outfile, "P6\n");
 	fprintf(outfile, "%d %d\n%d\n", MAX_PLATE_DIM, MAX_PLATE_DIM, 255);
 
-	psled::pPixel heatPixel;
+	psled::Pixel heatPixel;
 	for (int i = 0; i < MAX_PLATE_DIM; i++) {
 		for (int j = 0; j < MAX_PLATE_DIM; j++) {
 			heatPixel = convertToHeatMap(boardIn[i][j]);
@@ -114,11 +114,12 @@ void testHeatDistribution(int maxiters = 0, int threadcount = 0 ) {
 					}
 					// if not bordering add
 					float sum = 0;
+					int factor = 0;
 					for (int k = 0; k < heatPattern.size(); k++) {
-						sum += boardIn[i + heatPattern.rowOffset(k)][j + heatPattern.columnOffset(k)];
-
+						sum += boardIn[i + heatPattern.rowOffset(k)][j + heatPattern.columnOffset(k)] * heatPattern.itemWeight(k);
+						factor += heatPattern.itemWeight(k);
 					}
-					sum = sum / heatPattern.size();
+					sum = sum / factor;
 					boardOut[i][j] = sum;
 				}
 			}
@@ -136,11 +137,12 @@ void testHeatDistribution(int maxiters = 0, int threadcount = 0 ) {
 					}
 					// if not bordering add
 					float sum = 0;
+					int factor = 0;
 					for (int k = 0; k < heatPattern.size(); k++) {
-						sum += boardOut[i + heatPattern.rowOffset(k)][j + heatPattern.columnOffset(k)];
-
+						sum += boardOut[i + heatPattern.rowOffset(k)][j + heatPattern.columnOffset(k)] * heatPattern.itemWeight(k);
+						factor += heatPattern.itemWeight(k);
 					}
-					sum = sum / heatPattern.size();
+					sum = sum / factor;
 					boardIn[i][j] = sum;
 				}
 			}

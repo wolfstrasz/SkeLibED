@@ -86,7 +86,7 @@ namespace ts {
 					if (ro < 0 || ro >= tsXDSIZE || co < 0 || co >=tsYDSIZE) continue;
 					c += pattern.itemWeight(k);
 
-					sum += in[ro][co];
+					sum += in[ro][co] * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 				sout[i][j] = sum;
@@ -104,7 +104,7 @@ namespace ts {
 					int co = ((j + pattern.columnOffset(k) + tsYDSIZE) % tsYDSIZE);
 					c += pattern.itemWeight(k);
 
-					sum += in[ro][co];
+					sum += in[ro][co] * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 				sout[i][j] = sum;
@@ -128,7 +128,7 @@ namespace ts {
 					int co = j + pattern.columnOffset(k);
 					c += pattern.itemWeight(k);
 
-					sum += in[ro][co];
+					sum += in[ro][co] * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 
@@ -149,7 +149,7 @@ namespace ts {
 					if (co < 0 || co >= tsYDSIZE) co = j - pattern.columnOffset(k);
 					c += pattern.itemWeight(k);
 					
-					sum += in[ro][co];
+					sum += in[ro][co] * pattern.itemWeight(k);
 				}
 				sum = sum / c;
 				sout[i][j] = sum;

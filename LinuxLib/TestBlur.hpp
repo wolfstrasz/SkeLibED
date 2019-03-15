@@ -16,17 +16,17 @@ namespace test_blur {
 	FILE *grayscaleOutFile;
 	FILE *infile;
 	int height, width;
-	std::vector<psled::pPixel> imgIn;
-	std::vector<psled::pPixel> imgOut;
+	std::vector<psled::Pixel> imgIn;
+	std::vector<psled::Pixel> imgOut;
 	std::string filenameout;
 	std::string filenamein;
 	std::string gsfilenameOut;
 	Pattern gaussianBlur;
 
 
-	psled::pPixel grayscalePixel(psled::pPixel pixel){
+	psled::Pixel grayscalePixel(psled::Pixel pixel){
 		float Y = (0.299f * pixel.r) + (0.587 * pixel.g) + (0.114 * pixel.b);
-		return  psled::pPixel (Y,Y,Y);
+		return  psled::Pixel (Y,Y,Y);
 	}
 	void test(/*std::string filename, int h, int w*/) {
 		//height = h;
@@ -75,8 +75,8 @@ namespace test_blur {
 		std::cout << "(" << wi << ", " << he << ", " << fo << ")\n";
 		width = wi;
 		height = he;
-		imgIn = std::vector<psled::pPixel>(width * height);
-		imgOut = std::vector<psled::pPixel>(width * height);
+		imgIn = std::vector<psled::Pixel>(width * height);
+		imgOut = std::vector<psled::Pixel>(width * height);
 		std::cout << "(" << width << ", " << height << ")\n";
 		std::cout << "Reading input colors\n";
 		for (int i = 0; i < width; i++) {
@@ -113,9 +113,9 @@ namespace test_blur {
 		// fprintf(grayscaleOutFile, "%d %d\n%d\n", width, height, BLUR_FORMAT);
 		// for (int  i = 0; i < width; i++) {
 		// 	for (int j = 0; j < height; j++) {
-		// 		psled::pPixel px = grayscalePixel (imgIn.at(i*height + j));
+		// 		psled::Pixel px = grayscalePixel (imgIn.at(i*height + j));
 		// 		imgIn.at(i*height + j) = px;
-		// 		//psled::pPixel px = (imgIn.at(i*height + j));
+		// 		//psled::Pixel px = (imgIn.at(i*height + j));
 		//
 		// 		fputc((char)(px.r), grayscaleOutFile);
 		// 		fputc((char)(px.g), grayscaleOutFile);

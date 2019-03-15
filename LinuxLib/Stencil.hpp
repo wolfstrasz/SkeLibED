@@ -123,7 +123,7 @@ public:
 						// wrapping
 						i = (i + xdim) % xdim; // addition required because -4 % 5 is not = 1 by definition of % operator
 						j = (j + ydim) % ydim;
-						sum += scoreboard->input->at(i*ydim + j);
+						sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 						factor += pattern.itemWeight(offsetIndex);
 					}
 					sum = sum / *factor_ptr;
@@ -185,7 +185,7 @@ public:
 						if (i < 0 || i >= xdim) i = (rowIndex - pattern.rowOffset(offsetIndex));
 						if (j < 0 || j >= ydim) j = (colIndex - pattern.columnOffset(offsetIndex));
 
-						sum += scoreboard->input->at(i*ydim + j);
+						sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 						factor += pattern.itemWeight(offsetIndex);
 					}
 					sum = sum / *factor_ptr;
@@ -238,28 +238,20 @@ public:
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			for (int rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
 				for (int colIndex = 0; colIndex < scoreboard->cols; colIndex++) {
+					sum = 0;
 					factor = 0;
-				//	std::cout << "\n\n\n =============================================================================================\n";
-			//		std::cout << "GOL Main(" << rowIndex << ", " << colIndex << ") : " << scoreboard->input->at(rowIndex * ydim + colIndex) << std::endl;
-
-				//	std::cout << "Zero (" << rowIndex << ", " << colIndex << ") : " << sum << std::endl;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
-			//			std::cout << "\n";
 
 						int i = (pattern.rowOffset(offsetIndex) + rowIndex);
 						int j = (pattern.columnOffset(offsetIndex) + colIndex);
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-				//			std::cout << "OS (" << pattern.rowOffset(offsetIndex) << ", " << pattern.columnOffset(offsetIndex) << ")  ";
-				//			std::cout << "GoL (" << i << ", " << j << ") : " << scoreboard->input->at(i * ydim + j) << std::endl;
-							sum += scoreboard->input->at(i*ydim + j);
-				//			std::cout << "Sum (" << rowIndex << ", " << colIndex << ") : " << sum << std::endl;
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
 					sum = sum / *factor_ptr;
-				//	std::cout << "Sum Out(" << rowIndex << ", " << colIndex << ") : " << sum << std::endl;
 					scoreboard->output->at(rowIndex * ydim + colIndex) = sum;
 					sum -= sum;
 				}
@@ -282,8 +274,11 @@ public:
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			int rowIndex = startIndex;
 
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -295,7 +290,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -306,8 +301,8 @@ public:
 			}
 
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
-				for (int colIndex = 0; colIndex < colLowBoundary ; colIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
+				for (int colIndex = 0; colIndex < colLowBoundary; colIndex++) {
 					factor = 0;
 					sum = 0;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
@@ -318,7 +313,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -349,7 +344,7 @@ public:
 
 
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -361,7 +356,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -376,7 +371,7 @@ public:
 		template<typename T>
 		void threadVectorNormalOpt2(Scoreboard<std::vector<T>>* scoreboard, size_t startIndex, size_t endIndex, size_t startIndexBL, size_t endIndexBL) {
 
-			
+
 			Pattern &pattern = scoreboard->pattern;
 			T sum;
 			int xdim = scoreboard->rows;
@@ -386,9 +381,12 @@ public:
 			int colLowBoundary = -pattern.getColumnLowerBoundary();
 			int colHighBoundary = scoreboard->cols - pattern.getColumnHigherBoundary();
 			int rowLowBoundary = -pattern.getRowLowerBoundary();
-			int rowHighBoundary = scoreboard->rows - pattern.getRowHigherBoundary() ;
+			int rowHighBoundary = scoreboard->rows - pattern.getRowHigherBoundary();
 			int rowIndex = startIndexBL;
 
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
 			// RUN ON BORDER MODE
 			// -----------------------------
 			for (; rowIndex < endIndexBL; rowIndex++) {
@@ -412,7 +410,7 @@ public:
 			// --------------------------------------
 			rowIndex = startIndex;
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -424,7 +422,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -435,7 +433,7 @@ public:
 			}
 
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
 				for (int colIndex = 0; colIndex < colLowBoundary; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -447,7 +445,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -479,7 +477,7 @@ public:
 
 
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					factor = 0;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
@@ -490,7 +488,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -517,8 +515,12 @@ public:
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			int rowIndex = startIndex;
 
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
+
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -530,7 +532,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -542,7 +544,7 @@ public:
 			sum = 0;
 			factor = 0;
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
 				for (int colIndex = 0; colIndex < colLowBoundary; colIndex++) {
 					factor = 0;
 					sum = 0;
@@ -554,7 +556,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -588,7 +590,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j)* pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -599,9 +601,8 @@ public:
 			}
 			sum = 0;
 			factor = 0;
-
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -614,7 +615,7 @@ public:
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
 							sum += scoreboard->input->at(i*ydim + j);
-							factor += pattern.itemWeight(offsetIndex);
+							factor += pattern.itemWeight(offsetIndex)* pattern.itemWeight(offsetIndex);
 						}
 					}
 					sum = sum / *factor_ptr;
@@ -623,7 +624,7 @@ public:
 				}
 			}
 		}
-		
+
 		template<typename T>
 		void threadVectorNormalOpt4(Scoreboard<std::vector<T>>* scoreboard, size_t startIndex, size_t endIndex) {
 			Pattern &pattern = scoreboard->pattern;
@@ -639,9 +640,11 @@ public:
 			int factor;
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			int rowIndex = startIndex;
-
+			int lower = endIndex < rowLowBoundary ? endIndex : rowLowBoundary;
+			int middle = endIndex < rowHighBoundary ? endIndex : rowHighBoundary;
+			int upper = endIndex < xdim ? endIndex : xdim;
 			// RUN IF IN ROW BOUNDARY
-			for (; rowIndex < endIndex && rowIndex < rowLowBoundary; rowIndex++) {
+			for (; rowIndex < lower; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -653,7 +656,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -664,7 +667,7 @@ public:
 			}
 
 			// RUN IF BETWEENBOUNDARIES
-			for (; rowIndex < endIndex && rowIndex < rowHighBoundary; rowIndex++) {
+			for (; rowIndex < middle; rowIndex++) {
 				for (int colIndex = 0; colIndex < colLowBoundary; colIndex++) {
 					factor = 0;
 					sum = 0;
@@ -676,7 +679,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -707,7 +710,7 @@ public:
 
 
 			// Run In top boundary
-			for (; rowIndex < endIndex && rowIndex < xdim; rowIndex++) {
+			for (; rowIndex < upper; rowIndex++) {
 				for (int colIndex = 0; colIndex < ydim; colIndex++) {
 					sum = 0;
 					factor = 0;
@@ -719,7 +722,7 @@ public:
 
 						// cut-off check
 						if (i >= 0 && i < scoreboard->rows && j >= 0 && j < scoreboard->cols) {
-							sum += scoreboard->input->at(i*ydim + j);
+							sum += scoreboard->input->at(i*ydim + j) * pattern.itemWeight(offsetIndex);
 							factor += pattern.itemWeight(offsetIndex);
 						}
 					}
@@ -741,7 +744,7 @@ public:
 			int factor;
 			int* factor_ptr = scoreboard->pattern.normalization ? &factor : &no_factor;
 			for (int rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
-				for (int colIndex = -pattern.getColumnLowerBoundary(); colIndex < scoreboard->cols- pattern.getColumnHigherBoundary(); colIndex++) {
+				for (int colIndex = -pattern.getColumnLowerBoundary(); colIndex < scoreboard->cols - pattern.getColumnHigherBoundary(); colIndex++) {
 					factor = 0;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
 						int i = (pattern.rowOffset(offsetIndex) + rowIndex);
@@ -770,27 +773,20 @@ public:
 			for (int rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
 				for (int colIndex = -pattern.getColumnLowerBoundary(); colIndex < scoreboard->cols - pattern.getColumnHigherBoundary(); colIndex++) {
 					sum = 0;
-			//		std::cout << "\n\n\n =============================================================================================\n";
-			//		 std::cout << "Pixel Main(" << rowIndex << ", " << colIndex << ") color: " << scoreboard->input->at(rowIndex * ydim + colIndex) << std::endl;
-			//		std::cout << " Zero (" << rowIndex << ", " << colIndex << ") color: " << sum <<  " and Factor = " << factor << std::endl;
-//
+					//
 					factor = 0;
 					for (int offsetIndex = 0; offsetIndex < pattern.size(); offsetIndex++) {
-							// std::cout << "\n";
 						int i = (pattern.rowOffset(offsetIndex) + rowIndex);
 						int j = (pattern.columnOffset(offsetIndex) + colIndex);
-				//		std::cout << "OS (" << pattern.rowOffset(offsetIndex) << ", " << pattern.columnOffset(offsetIndex) << ", " << pattern.itemWeight(offsetIndex) << ")  ";
-			//			std::cout << "Pixel (" << i << ", " << j << ") color: " << scoreboard->input->at(i * ydim + j) << std::endl;
-						// std::cout << "WITH weight = " << scoreboard->pattern.itemWeight(offsetIndex)<<std::endl;
 						sum += scoreboard->input->at(i*ydim + j) * scoreboard->pattern.itemWeight(offsetIndex);
 						factor += pattern.itemWeight(offsetIndex);
 
-				//		std::cout << "Sum Pixel color: " << sum << " and Factor = " << factor << std::endl;
+						//		std::cout << "Sum Pixel color: " << sum << " and Factor = " << factor << std::endl;
 
 					}
 					sum = sum / *factor_ptr;
-			//		  std::cout << "Sum Out(" << rowIndex << ", " << colIndex << ") color: " << sum << " and Factor = " << factor << std::endl;
-//
+					//		  std::cout << "Sum Out(" << rowIndex << ", " << colIndex << ") color: " << sum << " and Factor = " << factor << std::endl;
+		//
 					scoreboard->output->at(rowIndex * ydim + colIndex) = sum;
 
 				}
@@ -800,7 +796,7 @@ public:
 
 		// Constructor
 		// -----------
-		StencilImplementation(size_t threads = 0)  {
+		StencilImplementation(size_t threads = 0) {
 			nthreads = threads ? threads : std::thread::hardware_concurrency();
 			std::cout << "Stencil: Initialised with " << threads << " threads\n";
 		}
@@ -810,18 +806,18 @@ public:
 			THREADS = std::vector <std::thread *>(nthreads);
 			if (bh == BoundaryHandling::BORDER || bh == BoundaryHandling::NORMAL_OPT_1 || bh == BoundaryHandling::NORMAL_OPT_2 || bh == BoundaryHandling::NORMAL_OPT_4) {
 				num_heavier_threads = (rows - so.getRowHigherBoundary() + so.getRowLowerBoundary()) % nthreads;
-				rows_per_thread = ((rows - so.getRowHigherBoundary() + so.getRowLowerBoundary()) / nthreads ) + 1;
+				rows_per_thread = ((rows - so.getRowHigherBoundary() + so.getRowLowerBoundary()) / nthreads) + 1;
 				index_begin = -so.getRowLowerBoundary();
 				index_end = 0;
 			}
 			else {
-				num_heavier_threads = ( rows % nthreads );
+				num_heavier_threads = (rows % nthreads);
 				rows_per_thread = rows / nthreads + 1;
 				index_begin = 0;
 				index_end = 0;
 			}
 
-		//	std::cout <<nthreads << " "<< index_begin << " " << " " << num_heavier_threads << " " << rows_per_thread << std::endl;
+			//	std::cout <<nthreads << " "<< index_begin << " " << " " << num_heavier_threads << " " << rows_per_thread << std::endl;
 		}
 	public:
 		// Paranthesis operator: call function
@@ -830,7 +826,7 @@ public:
 		void operator()(T(&output)[rows][cols], T(&input)[rows][cols], Pattern &pattern, BoundaryHandling bh = BoundaryHandling::NORMAL) {
 
 			scoreboard = new Scoreboard<T>(pattern, (T*)input, (T*)output, rows, cols);
-			generateThreadData(pattern,bh, rows);
+			generateThreadData(pattern, bh, rows);
 
 			// Run threads
 			// -----------
@@ -839,14 +835,14 @@ public:
 
 				for (t = 0; t < num_heavier_threads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadWrap<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
 					index_begin += rows_per_thread;
 				}
 				rows_per_thread--;
-				for (;t<nthreads; t++){
+				for (; t < nthreads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadWrap<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
 					index_begin += rows_per_thread;
 				}
@@ -855,14 +851,14 @@ public:
 				// CAN OPTIMIZE IN TWO RUNS for boundary ones and non
 				for (t = 0; t < num_heavier_threads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadMirror<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
-					index_begin += rows_per_thread ;
+					index_begin += rows_per_thread;
 				}
 				rows_per_thread--;
-				for (;t<nthreads; t++){
+				for (; t < nthreads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadMirror<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
 					index_begin += rows_per_thread;
 				}
@@ -871,14 +867,14 @@ public:
 
 				for (t = 0; t < num_heavier_threads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadBorder<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
 					index_begin += rows_per_thread;
 				}
 				rows_per_thread--;
-				for (;t<nthreads; t++){
+				for (; t < nthreads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadBorder<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
 					index_begin += rows_per_thread;
 				}
@@ -887,14 +883,14 @@ public:
 				// CAN OPTIMIZE IN TWO RUNS for boundary ones and non
 				for (t = 0; t < num_heavier_threads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F1 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadNormal<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
 					index_begin += rows_per_thread;
 				}
 				rows_per_thread--;
-				for (;t<nthreads; t++){
+				for (; t < nthreads; t++) {
 					index_end = index_begin + rows_per_thread;
-			//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
+					//		std::cout << "F2 -> Thread: (" << t << ", " << index_begin << ", " << index_end << ")\n";
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadNormal<T>, this, (Scoreboard<T>*)scoreboard, index_begin, index_end);
 					index_begin += rows_per_thread;
 				}
@@ -908,13 +904,13 @@ public:
 
 		template< typename T>
 		void operator()(std::vector<T> &output, std::vector<T> &input, Pattern &pattern, BoundaryHandling bh = BoundaryHandling::NORMAL, int xdim = 1, int ydim = 1) {
-		//	std::cout << "HAAR: " << xdim << " " << ydim<< std::endl;
+			//	std::cout << "HAAR: " << xdim << " " << ydim<< std::endl;
 			scoreboard = new Scoreboard<std::vector<T>>(pattern, &input, &output, xdim, ydim);
 			generateThreadData(pattern, bh, xdim);
 
 
-		//	std::cout << "Img sizes: \n" ;
-			if (bh == BoundaryHandling::WRAP){
+			//	std::cout << "Img sizes: \n" ;
+			if (bh == BoundaryHandling::WRAP) {
 				for (t = 0; t < num_heavier_threads; t++) {
 					index_end = index_begin + rows_per_thread;
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadVectorWrap<T>, this, (Scoreboard<std::vector<T>>*)scoreboard, index_begin, index_end);
@@ -964,7 +960,7 @@ public:
 				for (t = 0; t < num_heavier_threads; t++) {
 					index_end = index_begin + rows_per_thread;
 					THREADS.at(t) = new std::thread(&StencilImplementation::threadVectorBorder<T>, this, (Scoreboard<std::vector<T>>*)scoreboard, index_begin, index_end);
-				//	std::cout << "FROM F1: " << index_begin << " " << index_end << std::endl;
+					//	std::cout << "FROM F1: " << index_begin << " " << index_end << std::endl;
 					index_begin += rows_per_thread;
 				}
 				rows_per_thread--;
@@ -975,9 +971,9 @@ public:
 					index_begin += rows_per_thread;
 				}
 
-					//	std::cout << "HERE" << std::endl;
+				//	std::cout << "HERE" << std::endl;
 
-				// run as ONLYBORDER
+			// run as ONLYBORDER
 				for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
 				bh = BoundaryHandling::NORMAL;
 				generateThreadData(pattern, bh, xdim);
@@ -998,28 +994,28 @@ public:
 			}
 			else if (bh == BoundaryHandling::NORMAL_OPT_2) {
 				// TRY 2
-			size_t num_heavier_threadsBL = num_heavier_threads;
-			size_t rows_per_threadBL = rows_per_thread;
-			size_t index_beginBL = index_begin;
-			size_t index_endBL = index_end;
-			bh = BoundaryHandling::NORMAL;
-			generateThreadData(pattern, bh, xdim);
-			size_t t;
-			for (t = 0; t < nthreads; t++) {
-				if (num_heavier_threads == 0) { rows_per_thread--; }
-				if (num_heavier_threadsBL == 0) { rows_per_threadBL--; }
-				index_end = index_begin + rows_per_thread;
-				index_endBL = index_beginBL + rows_per_threadBL;
+				size_t num_heavier_threadsBL = num_heavier_threads;
+				size_t rows_per_threadBL = rows_per_thread;
+				size_t index_beginBL = index_begin;
+				size_t index_endBL = index_end;
+				bh = BoundaryHandling::NORMAL;
+				generateThreadData(pattern, bh, xdim);
+				size_t t;
+				for (t = 0; t < nthreads; t++) {
+					if (num_heavier_threads == 0) { rows_per_thread--; }
+					if (num_heavier_threadsBL == 0) { rows_per_threadBL--; }
+					index_end = index_begin + rows_per_thread;
+					index_endBL = index_beginBL + rows_per_threadBL;
 
-			//	std::cout << index_beginBL <<" " << index_endBL-1 << " " << index_begin << " " << index_end -1  << "\n";
-				THREADS.at(t) = new std::thread(&StencilImplementation::threadVectorNormalOpt2<T>, this, (Scoreboard<std::vector<T>>*)scoreboard, index_begin, index_end, index_beginBL, index_endBL);
+					//	std::cout << index_beginBL <<" " << index_endBL-1 << " " << index_begin << " " << index_end -1  << "\n";
+					THREADS.at(t) = new std::thread(&StencilImplementation::threadVectorNormalOpt2<T>, this, (Scoreboard<std::vector<T>>*)scoreboard, index_begin, index_end, index_beginBL, index_endBL);
 
-				index_begin += rows_per_thread;
-				index_beginBL += rows_per_threadBL;
+					index_begin += rows_per_thread;
+					index_beginBL += rows_per_threadBL;
 
-				num_heavier_threads--;
-				num_heavier_threadsBL--;
-			}
+					num_heavier_threads--;
+					num_heavier_threadsBL--;
+				}
 			}
 			else if (bh == BoundaryHandling::NORMAL_OPT_3) {
 				for (t = 0; t < num_heavier_threads; t++) {
@@ -1056,13 +1052,13 @@ public:
 
 
 				// run as ONLYBORDER
-			//	for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
+				for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
 				int items_in_cows = ydim + pattern.getColumnLowerBoundary() - pattern.getRowHigherBoundary();
 				int items_in_rows = xdim + pattern.getRowLowerBoundary() - pattern.getRowHigherBoundary();
 				int borderitems = xdim * ydim - items_in_cows * items_in_rows;
 				int meanItemsPerThread = borderitems / nthreads + 1;
 
-			//	std::cout << items_in_cows <<" "<< items_in_rows << " " << borderitems << " " << meanItemsPerThread << "\n";
+				//	std::cout << items_in_cows <<" "<< items_in_rows << " " << borderitems << " " << meanItemsPerThread << "\n";
 				index_begin = 0;
 				index_end = 0;
 				for (t = 0; t < nthreads - 1; t++) {
@@ -1095,6 +1091,7 @@ public:
 				}
 			}
 			for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
+			//std::cout << "Finished\n";
 		}
 
 		// Friend Functions for Stencil Implementation Class

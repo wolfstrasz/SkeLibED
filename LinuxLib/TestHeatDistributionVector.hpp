@@ -46,8 +46,8 @@ namespace thdv {
 		}
 	}
 
-	psled::pPixel convertToHeatMap(float value, float minimum = 1.0f, float maximum = 3.0f) {
-		psled::pPixel k;
+	psled::Pixel convertToHeatMap(float value, float minimum = 1.0f, float maximum = 3.0f) {
+		psled::Pixel k;
 		float halfmax = (minimum + maximum) / 2;
 		float ratio = 2 * (value - minimum) / (maximum - minimum);
 
@@ -65,7 +65,7 @@ namespace thdv {
 		fprintf(outfile, "P6\n");
 		fprintf(outfile, "%d %d\n%d\n", MAX_PLATE_DIMV, MAX_PLATE_DIMV, 255);
 
-		psled::pPixel heatPixel;
+		psled::Pixel heatPixel;
 		for (int i = 0; i < MAX_PLATE_DIMV; i++) {
 			for (int j = 0; j < MAX_PLATE_DIMV; j++) {
 				heatPixel = convertToHeatMap(boardIn.at(i * MAX_PLATE_DIMV + j));
@@ -108,6 +108,7 @@ namespace thdv {
 			for (int i = 0; i < MAX_PLATE_DIMV; i++) {
 				for (int j = 0; j < MAX_PLATE_DIMV; j++) {
 					// Check for border
+					int factor = 0;
 					if (i < -heatPattern.getRowLowerBoundary()
 						|| i >= (MAX_PLATE_DIMV - heatPattern.getRowHigherBoundary())
 						|| j < -heatPattern.getColumnLowerBoundary()
@@ -121,9 +122,10 @@ namespace thdv {
 					for (int k = 0; k < heatPattern.size(); k++) {
 						int ri = i + heatPattern.rowOffset(k);
 						int ci = j + heatPattern.columnOffset(k);
-						sum += boardIn.at(MAX_PLATE_DIMV * ri + ci);
+						sum += boardIn.at(MAX_PLATE_DIMV * ri + ci) * heatPattern.itemWeight(k);
+						factor += heatPattern.itemWeight(k);
 					}
-					sum = sum / heatPattern.size();
+					sum = sum / factor;
 					boardOut.at(MAX_PLATE_DIMV * i + j) = sum;
 				}
 			}
@@ -141,12 +143,14 @@ namespace thdv {
 					}
 					// if not bordering add
 					float sum = 0;
+					int factor = 0;
 					for (int k = 0; k < heatPattern.size(); k++) {
 						int ri = i + heatPattern.rowOffset(k);
 						int ci = j + heatPattern.columnOffset(k);
-						sum += boardOut.at(MAX_PLATE_DIMV * ri + ci);
+						sum += boardOut.at(MAX_PLATE_DIMV * ri + ci) * heatPattern.itemWeight(k);
+						factor += heatPattern.itemWeight(k);
 					}
-					sum = sum / heatPattern.size();
+					sum = sum / factor;
 					boardIn.at(MAX_PLATE_DIMV * i + j) = sum;
 				}
 			}

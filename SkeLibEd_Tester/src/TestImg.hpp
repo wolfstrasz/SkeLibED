@@ -14,7 +14,7 @@ void testImgWrite() {
 	std::cout << " TEST IMG WRITE\n";
 	outfile = fopen("custompicture1000.ppm", "w");
 
-	psled::pPixel img[HXRES][HYRES];
+	psled::Pixel img[HXRES][HYRES];
 
 	/*
 		_________
@@ -56,7 +56,7 @@ void testImgWrite() {
 
 void testImgRead() {
 	int height, width, format;
-	psled::pPixel img[300][300]; /* cygwin testing is bad as it cannot get enough memory*/
+	psled::Pixel img[300][300]; /* cygwin testing is bad as it cannot get enough memory*/
 
 	char six[100];
 	char *pSix = six;
