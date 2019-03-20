@@ -20,11 +20,7 @@ struct GoL {
 		return *this;
 	}
 	struct GoL& operator-= (const GoL& rhs) { alive = false; neighbours = 0; return *this; }
-	void operator= (const int &a) {
-		alive = false;
-		neighbours = 0;
-	}
-		
+
 };
 
 // Overload binary operators

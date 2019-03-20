@@ -7,8 +7,74 @@ namespace psled {
 		int r, g, b;
 		Pixel(int r = 0, int g = 0, int b = 0) { this->r = r; this->g = g; this->b = b; }
 		bool non = true;
-		// Overload operators
-		struct Pixel& operator+= (const Pixel& rhs) {
+
+		// Overload unary operators
+		// ------------------------
+		struct Pixel& operator+= (const Pixel& rhs) { r += rhs.r;  g += rhs.g; b += rhs.b; return *this; }
+		struct Pixel& operator*= (const int &k) { r *= k; g *= k; b *= k; return *this; }
+		struct Pixel& operator/= (const int &k) {
+			r /= k;
+			g /= k;
+			b /= k;
+
+			// // Mirror if lower than 0
+			if (r < 0) r = -r;
+			if (g < 0) g = -g;
+			if (b < 0) b = -b;
+			//
+			// // Mirror if higher than 255
+			if (r > 255) r = 255 - (r % 256);
+			if (g > 255) g = 255 - (g % 256);
+			if (b > 255) b = 255 - (b % 256);
+
+			// r = (r+256) % 256;
+			// g = (g+256) % 256;
+			// b = (b+256) % 256;
+			 return *this;
+		}
+		struct Pixel& operator-= (const Pixel& rhs) { r -= rhs.r; g -= rhs.g; b -= rhs.b; return *this; }
+
+	};
+
+	// Overload binary operators
+	// -------------------------
+	Pixel operator+(Pixel lhs, const Pixel& rhs) { return lhs += rhs; }
+	Pixel operator-(Pixel lhs, const Pixel& rhs) { return lhs -= rhs; }
+	Pixel operator*(Pixel lhs, const int k) { return lhs *= k; }
+	Pixel operator*(const int k, Pixel rhs) { return rhs *= k; }
+	Pixel operator/(Pixel lhs, const int k) { return lhs /= k; }
+
+	// Overload print operator
+	std::ostream & operator << (std::ostream &out, const Pixel &p)
+	{
+		out << "(R, G, B | NON) = (" << p.r << ", " << p.g << ", " << p.b << "| " << (int)p.non << ") ";
+		return out;
+	}
+
+}
+
+/* Depricated funcionality for now
+		// void operator=(const Pixel &p) {
+		// //	std::cout << "  (NONI  => " << int(non) << ")  ";
+		// 	non = false;
+		// 	r = p.r;
+		// 	g = p.g;
+		// 	b = p.b;
+		// }
+		// void operator= (const int &a) {
+		// //	std::cout << "  (NONI  => " << int(non) << ")  + CONST INT =  " << a << "   ";
+		// 	r = a;
+		// 	g = a;
+		// 	b = a;
+		// 	if (a == 0)
+		// 		non = true;
+		// }
+		// void printPixel() {
+		// 	std::cout << "(R, G, B | NON) = (" << r << ", " << g << ", " << b << "| "<< (int)non <<  ")\n";
+		// }
+
+
+			struct Pixel& operator+= (const Pixel& rhs) {
 		//	std::cout << "  (NONI  = " << int(non) << ")  ";
 			// if (non) {
 			// 	r = rhs.r;
@@ -41,7 +107,7 @@ namespace psled {
 			 b += rhs.b;
 			return *this;
 		}
-		struct Pixel& operator*= (const int &k) { r *= k; g *= k; b *= k; return *this; }
+
 		struct Pixel& operator/= (const int &k) {
 		//	if (r < 0 ) std::cout << "Old R: " << r << " New R:";
 			r /= k;
@@ -61,39 +127,5 @@ namespace psled {
 		//	b +=256;
 		//	b %=256;
 			 return *this; }
-		struct Pixel& operator-= (const Pixel& rhs) { r -= rhs.r; g -= rhs.g; b -= rhs.b; return *this; }
-		// void operator=(const Pixel &p) {
-		// //	std::cout << "  (NONI  => " << int(non) << ")  ";
-		// 	non = false;
-		// 	r = p.r;
-		// 	g = p.g;
-		// 	b = p.b;
-		// }
-		// void operator= (const int &a) {
-		// //	std::cout << "  (NONI  => " << int(non) << ")  + CONST INT =  " << a << "   ";
-		// 	r = a;
-		// 	g = a;
-		// 	b = a;
-		// 	if (a == 0)
-		// 		non = true;
-		// }
-		// void printPixel() {
-		// 	std::cout << "(R, G, B | NON) = (" << r << ", " << g << ", " << b << "| "<< (int)non <<  ")\n";
-		// }
-	};
-
-	// Overload binary operators
-	Pixel operator+(Pixel lhs, const Pixel& rhs) { return lhs += rhs; }
-	Pixel operator-(Pixel lhs, const Pixel& rhs) { return lhs -= rhs; }
-	Pixel operator*(Pixel lhs, const int k) { return lhs *= k; }
-	Pixel operator*(const int k, Pixel rhs) { return rhs *= k; }
-	Pixel operator/(Pixel lhs, const int k) { return lhs /= k; }
-	std::ostream & operator << (std::ostream &out, const Pixel &p)
-	{
-		out << "(R, G, B | NON) = (" << p.r << ", " << p.g << ", " << p.b << "| " << (int)p.non << ") ";
-
-		return out;
-	}
-}
-
+*/
 #endif // !_PIXEL_HPP

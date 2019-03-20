@@ -171,7 +171,7 @@ namespace test_blur {
 			// gaussianBlur.normalization = false;
 
 	 	std::cout << "running Blur\n";
-	 	stencil(imgOut, imgIn, gaussianBlur, PSLED_BORDER, height, width);
+	 	stencil(imgOut, imgIn, gaussianBlur, PSLED_CROP, height, width);
 
 	    // write img file
 

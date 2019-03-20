@@ -179,9 +179,9 @@ namespace thdv {
 		start = std::chrono::system_clock::now();
 		for (int iter = 0; iter < maxiters; iter += 2) {
 			// Forwards iteration
-			stencil(boardOut, boardIn, heatPattern, PSLED_BORDER, MAX_PLATE_DIMV, MAX_PLATE_DIMV);
+			stencil(boardOut, boardIn, heatPattern, PSLED_CROP, MAX_PLATE_DIMV, MAX_PLATE_DIMV);
 			// Backwards iteration
-			stencil(boardIn, boardOut, heatPattern, PSLED_BORDER, MAX_PLATE_DIMV, MAX_PLATE_DIMV);
+			stencil(boardIn, boardOut, heatPattern, PSLED_CROP, MAX_PLATE_DIMV, MAX_PLATE_DIMV);
 		}
 		end = std::chrono::system_clock::now();
 		printPPM("Parallel", maxiters, threadcount);

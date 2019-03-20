@@ -110,7 +110,7 @@ namespace tsv {
 		}
 	}
 
-	void sequentialBorderTest() {
+	void sequentialCropTest() {
 		for (int i = 0; i < tsvXDSIZE; i++) {
 			for (int j = 0; j < tsvYDSIZE; j++) {
 				if (i < -pattern.getRowLowerBoundary()
@@ -239,12 +239,12 @@ namespace tsv {
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
-		// TEST: BORDER
+		// TEST: CROP
 		// ----------------------------------------------------------
-		std::cout << "Sequential: BORDER \n";
-		sequentialBorderTest();
-		std::cout << "Parallel:   BORDER\n";
-		stencil(pout, in, pattern, PSLED_BORDER, tsvXDSIZE, tsvYDSIZE);
+		std::cout << "Sequential: CROP \n";
+		sequentialCropTest();
+		std::cout << "Parallel:   CROP\n";
+		stencil(pout, in, pattern, PSLED_CROP, tsvXDSIZE, tsvYDSIZE);
 		equivalenceCheck();
 		//	printInput();
 		//	printSeqentialOutput();

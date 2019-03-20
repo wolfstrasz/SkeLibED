@@ -61,4 +61,182 @@ public:
 };
 
 
+class BoxBlur : public Pattern {
+public:
+	BoxBlur() {
+		this->add(-1, -1);
+		this->add(-1, 0);
+		this->add(-1, 1);
+		this->add(0, -1);
+		this->add(0, 0);
+		this->add(0, 1);
+		this->add(1, -1);
+		this->add(1, 0);
+		this->add(1, 1);
+		}
+};
+
+class GaussianBlur3x3 : public Pattern {
+public:
+	GaussianBlur3x3() {
+		this->add(-1, -1, 1);
+		this->add(-1, 0, 2);
+		this->add(-1, 1, 1);
+		this->add(0, -1, 2);
+		this->add(0, 0, 4);
+		this->add(0, 1, 2);
+		this->add(1, -1, 1);
+		this->add(1, 0, 2);
+		this->add(1, 1, 1);
+	}
+};
+
+class GaussianBlur5x5 : public Pattern {
+public:
+	GaussianBlur5x5() {
+		// row 1
+		this->add(-2, -2, 1);
+		this->add(-2, -1, 4);
+		this->add(-2,  0, 6);
+		this->add(-2,  1, 4);
+		this->add(-2,  2, 1);
+
+		// row 2
+		this->add(-1, -2, 4);
+		this->add(-1, -1, 16);
+		this->add(-1,  0, 24);
+		this->add(-1,  1, 16);
+		this->add(-1,  2, 4);
+
+
+		// row 3
+		this->add(0, -2, 6);
+		this->add(0, -1, 24);
+		this->add(0,  0, 36);
+		this->add(0,  1, 24);
+		this->add(0,  2, 6);
+
+
+		// row 4
+		this->add(1, -2, 4);
+		this->add(1, -1, 16);
+		this->add(1,  0, 24);
+		this->add(1,  1, 16);
+		this->add(1,  2, 4);
+		
+		// row 5
+		this->add(2, -2, 1);
+		this->add(2, -1, 4);
+		this->add(2,  0, 6);
+		this->add(2,  1, 4);
+		this->add(2,  2, 1);
+	}
+};
+
+class UnsharpMasking5x5 : public Pattern {
+public:
+	UnsharpMasking5x5() {
+		// row 1
+		this->add(-2, -2, 1);
+		this->add(-2, -1, 4);
+		this->add(-2, 0, 6);
+		this->add(-2, 1, 4);
+		this->add(-2, 2, 1);
+
+		// row 2
+		this->add(-1, -2, 4);
+		this->add(-1, -1, 16);
+		this->add(-1, 0, 24);
+		this->add(-1, 1, 16);
+		this->add(-1, 2, 4);
+
+
+		// row 3
+		this->add(0, -2, 6);
+		this->add(0, -1, 24);
+		this->add(0, 0, -476);
+		this->add(0, 1, 24);
+		this->add(0, 2, 6);
+
+
+		// row 4
+		this->add(1, -2, 4);
+		this->add(1, -1, 16);
+		this->add(1, 0, 24);
+		this->add(1, 1, 16);
+		this->add(1, 2, 4);
+
+		// row 5
+		this->add(2, -2, 1);
+		this->add(2, -1, 4);
+		this->add(2, 0, 6);
+		this->add(2, 1, 4);
+		this->add(2, 2, 1);
+	}
+};
+
+class SharpenMask : public Pattern {
+public:
+	SharpenMask() {
+		this->add(-1, 0, -1);
+		this->add(0, -1, -1);
+		this->add(0,  0,  5);
+		this->add(0,  1, -1);
+		this->add(1,  0, -1);
+		this->normalization = false;
+	}
+};
+
+class EdgeDetectionHard : public Pattern {
+public:
+	EdgeDetectionHard() {
+		this->add(-1, -1, 1);
+		this->add(-1, 1, -1);
+		this->add(1, -1, -1);
+		this->add(1, 1, 1);
+		this->normalization = false;
+	}
+};
+
+
+class EdgeDetectionMedium : public Pattern {
+public:
+	EdgeDetectionMedium() {
+		this->add(-1,  0,  1);
+		this->add( 0,  1,  1);
+		this->add( 0,  0, -4);
+		this->add( 0, -1,  1);
+		this->add( 1,  0,  1);
+		this->normalization = false;
+	}
+};
+
+class EdgeDetectionSoft : public Pattern {
+public:
+	EdgeDetectionSoft() {
+		this->add(-1, -1,  1);
+		this->add(-1,  0,  1);
+		this->add(-1,  1,  1);
+		this->add( 0,  1,  1);
+		this->add( 0,  0, -8);
+		this->add( 0, -1,  1);
+		this->add( 1, -1,  1);
+		this->add( 1,  0,  1);
+		this->add( 1,  1,  1);
+		this->normalization = false;
+	}
+};
+
+class Emboss : public Pattern {
+public:
+	Emboss() {
+		this->add(-1, -1, -2);
+		this->add(-1, 0, -1);
+		this->add(0, -1, -1);
+		this->add(0, 0, 1);
+		this->add(0, 1, 1);
+		this->add(1, 0, 1);
+		this->add(1, 1, 2);
+	}
+};
 #endif // !_PATTERN_HPP

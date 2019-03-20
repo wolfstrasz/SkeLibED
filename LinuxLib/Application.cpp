@@ -12,8 +12,9 @@
 #include "TestHeatDistribution.hpp"
 #include "TestStencilVector.hpp"
 #include "TestHeatDistributionVector.hpp"
-#include "TestBlur.hpp"
+#include "TestImageProcessing.hpp"
 #include "TestGoL.hpp"
+
 int main(int argc, char* argv[]) {
 
 	size_t func = 0;
@@ -28,54 +29,106 @@ int main(int argc, char* argv[]) {
 	func = strtol(argv[index++], nullptr, 0);
 
 	if (func == -1) {
-		std::cout << "RUNNING: TEST STENCIL\n";
 		ts::test();
 		return 0;
 	}
-	if (func == -2) {
-		std::cout << "RUNNING: TEST STENCIL VECTOR\n";
+	else if (func == -2) {
 		tsv::test();
 		return 0;
 	}
-	if (func == -3) {
-		std::cout << "RUNNING: TEST BLUR IMG\n";
-		test_blur::test();
+	else if (func == -3) {
+		test_img_pr::test();
 		return 0;
 	}
-	
-	thrc = strtol(argv[index++], nullptr, 0);
-	if (func != 5)
-	blkc = strtol(argv[index++], nullptr, 0);
-	if (func != 5)
-	ic = strtol(argv[index++], nullptr, 0);
-	if (func != 1) {
-		iters = strtol(argv[index++], nullptr, 0);
-	}
-	if (func != 3 && func != 5) {
-		arg = strtod(argv[index++], nullptr);
-	}
-	//	if (func == 4){
-		//	ic2 = strtol(argv[index++], nullptr, 0);
-		//}
+	else if (func == 1) {
 
-	if (func == 1) {
+		if (argv[index] == nullptr) {
+			printf("Collatz test. Use args >> ./run.out 1 [threads] [blocks] [itemscount] [argument]");
+			return 0;
+		}
+		thrc = strtol(argv[index++], nullptr, 0);
+		blkc = strtol(argv[index++], nullptr, 0);
+		ic = strtol(argv[index++], nullptr, 0);
+		arg = strtod(argv[index++], nullptr);
+
+		// Tests
 		//	collatz::test(thrc, blkc, ic, arg);
 	}
 	else if (func == 2) {
+		if (argv[index] == nullptr) {
+			printf("Mandelbrot test. Use args >> ./run.out 2 [threads] [blocks] [itemscount] [iterations] [argument]");
+			return 0;
+		}
+		thrc = strtol(argv[index++], nullptr, 0);
+		blkc = strtol(argv[index++], nullptr, 0);
+		ic = strtol(argv[index++], nullptr, 0);
+		iters = strtol(argv[index++], nullptr, 0);
+		arg = strtod(argv[index++], nullptr);
+
+		// Tests
 		//	mandelbrot::test(thrc, blkc, ic, ic, iters, arg);
 	}
 	else if (func == 3) {
+		if (argv[index] == nullptr) {
+			printf("Nbody test. Use args >> ./run.out 3 [threads] [blocks] [itemscount] [iterations]");
+			return 0;
+		}
+		thrc = strtol(argv[index++], nullptr, 0);
+		blkc = strtol(argv[index++], nullptr, 0);
+		ic = strtol(argv[index++], nullptr, 0);
+		iters = strtol(argv[index++], nullptr, 0);
+
+		// Tests
 		//	nbody::test(thrc, blkc, ic, iters);
 	}
 	else if (func == 4) {
+		if (argv[index] == nullptr) {
+			printf("Draw test. Use args >> ./run.out 4 [threads] [blocks] [itemscount] [iterations] [argument]");
+			return 0;
+		}
+
+		thrc = strtol(argv[index++], nullptr, 0);
+		blkc = strtol(argv[index++], nullptr, 0);
+		ic = strtol(argv[index++], nullptr, 0);
+		iters = strtol(argv[index++], nullptr, 0);
+		arg = strtod(argv[index++], nullptr);
+
+		// Tests
 		//	draw(thrc, blkc, ic, ic, iters, arg);
 	}
 	else if (func == 5){
+		if (argv[index] == nullptr) {
+			printf("Head Distribution test. Use args >> ./run.out 5 [threads] [iterations]");
+			return 0;
+		}
+		thrc = strtol(argv[index++], nullptr, 0);
+		iters = strtol(argv[index++], nullptr, 0);
+
+		// Tests
 		testHeatDistribution(iters, thrc);
 		thdv::testHeatDistributionVector(iters, thrc);
 	}
 	else if (func == 6) {
+		if (argv[index] == nullptr) {
+			printf("Game of Life test. Use args >> ./run.out 6 [threads] [xdim] [ydim] [iterations] [pattern_radius]");
+			return 0;
+		}
+		thrc = strtol(argv[index++], nullptr, 0);
+		blkc = strtol(argv[index++], nullptr, 0);
+		ic = strtol(argv[index++], nullptr, 0);
+		iters = strtol(argv[index++], nullptr, 0);
+		arg = strtod(argv[index++], nullptr);
+
+		// Tests
 		goltest(thrc, blkc, ic, iters, arg);
+	}
+	else {
+
+		printf("Incorrect function input!\n");
+		printf("Use one of the following sets of arguments for different testing\n");
+		printf("Stencil 2D Array Unit tests:\t >> ./run.out -1 \n");
+		printf("Stencil Vector Unit tests:  \t >> ./run.out -2 \n");
+		printf("");
 	}
 
 	return 0;

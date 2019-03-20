@@ -112,7 +112,7 @@ namespace ts {
 		}
 	}
 
-	void sequentialBorderTest() {
+	void sequentialCropTest() {
 		for (int i = 0; i < tsXDSIZE; i++) {
 			for (int j = 0; j < tsYDSIZE; j++) {
 				if (i < -pattern.getRowLowerBoundary()
@@ -224,9 +224,9 @@ namespace ts {
 		std::cout << "Parallel:   NORMAL \n";
 		stencil(pout, in, pattern, PSLED_NORMAL);
 		equivalenceCheck();
-		//	printInput();
-		//	printSeqentialOutput();
-		//	printParallelOutput();
+			printInput();
+			printSeqentialOutput();
+			printParallelOutput();
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
@@ -237,9 +237,9 @@ namespace ts {
 		std::cout << "Parallel:   WRAP \n";
 		stencil(pout, in, pattern, PSLED_WRAP);
 		equivalenceCheck();
-		//	printInput();
-		//	printSeqentialOutput();
-		//	printParallelOutput();
+			printInput();
+			printSeqentialOutput();
+			printParallelOutput();
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
@@ -256,12 +256,12 @@ namespace ts {
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
-		// TEST: BORDER
+		// TEST: CROP
 		// ----------------------------------------------------------
-		std::cout << "Sequential: BORDER \n";
-		sequentialBorderTest();
-		std::cout << "Parallel:   BORDER\n";
-		stencil(pout, in, pattern, PSLED_BORDER);
+		std::cout << "Sequential: CROP \n";
+		sequentialCropTest();
+		std::cout << "Parallel:   CROP\n";
+		stencil(pout, in, pattern, PSLED_CROP);
 		equivalenceCheck();
 		//	printInput();
 		//	printSeqentialOutput();

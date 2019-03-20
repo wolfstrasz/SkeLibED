@@ -12,9 +12,9 @@
 namespace thdv {
 	/* uses Jacobi method to solve a sparse system of linear equations */
 	/* to solve we need conditions at the border to be kept constant */
-#define MAX_PLATE_DIMV 128
-	std::vector<float> boardIn = std::vector<float>(MAX_PLATE_DIMV * MAX_PLATE_DIMV);		// iterative simulation would require us to switch betweeen Input and Output
-	std::vector<float> boardOut = std::vector<float>(MAX_PLATE_DIMV * MAX_PLATE_DIMV);
+//#define MAX_PLATE_DIMV 128
+	std::vector<float> boardIn;	// iterative simulation would require us to switch betweeen Input and Output
+	std::vector<float> boardOut;
 	Pattern heatPattern;
 
 
@@ -26,22 +26,25 @@ namespace thdv {
 		heatPattern.add(0, -1);
 	}
 
-	void initPlate() {
+	void initPlate(int dim) {
+		boardIn = std::vector<float>(dim * dim);
+		boardOut = std::vector<float>(dim * dim);
+
 		// Initialise start plate cold with blue value (1.0f)
-		for (int i = 0; i < MAX_PLATE_DIMV; i++) {
+		for (int i = 0; i < dim; i++) {
 			//	std::cout << i << std::endl;
-			for (int j = 0; j < MAX_PLATE_DIMV; j++) {
+			for (int j = 0; j < dim; j++) {
 				//	std::cout << j << std::endl;
-				boardIn.at(i * MAX_PLATE_DIMV + j) = 1.0f;
-				boardOut.at(i * MAX_PLATE_DIMV + j) = 1.0f;
+				boardIn.at(i * dim + j) = 1.0f;
+				boardOut.at(i * dim + j) = 1.0f;
 			}
 		}
 		// Initialise hot spot (from below and top the plate) with red value (3.0f);
-		for (int j = 1; j < MAX_PLATE_DIMV - 1; j++) {
-			boardIn.at((MAX_PLATE_DIMV - 1)*MAX_PLATE_DIMV + j) = 3.0f;
+		for (int j = 1; j < dim - 1; j++) {
+			boardIn.at((dim - 1)*dim + j) = 3.0f;
 			boardIn.at(j) = 3.0f;
 
-			boardOut.at((MAX_PLATE_DIMV - 1)*MAX_PLATE_DIMV + j) = 3.0f;
+			boardOut.at((dim - 1)*dim + j) = 3.0f;
 			boardOut.at(j) = 3.0f;
 		}
 	}
@@ -58,17 +61,17 @@ namespace thdv {
 	}
 
 
-	void printPPM(std::string name, int iters, int threads) {
+	void printPPM(int dim, std::string name, int iters, int threads) {
 		std::string outfileName = "vheat_" + name + "_" + std::to_string(threads) + "_" + std::to_string(iters) + ".ppm";
 		FILE *outfile;
 		outfile = fopen(outfileName.c_str(), "w");
 		fprintf(outfile, "P6\n");
-		fprintf(outfile, "%d %d\n%d\n", MAX_PLATE_DIMV, MAX_PLATE_DIMV, 255);
+		fprintf(outfile, "%d %d\n%d\n", dim, dim, 255);
 
 		psled::Pixel heatPixel;
-		for (int i = 0; i < MAX_PLATE_DIMV; i++) {
-			for (int j = 0; j < MAX_PLATE_DIMV; j++) {
-				heatPixel = convertToHeatMap(boardIn.at(i * MAX_PLATE_DIMV + j));
+		for (int i = 0; i < dim; i++) {
+			for (int j = 0; j < dim; j++) {
+				heatPixel = convertToHeatMap(boardIn.at(i * dim + j));
 				fputc((char)heatPixel.r, outfile);
 				fputc((char)heatPixel.g, outfile);
 				fputc((char)heatPixel.b, outfile);
@@ -80,12 +83,12 @@ namespace thdv {
 	/* https://www.sciencedirect.com/topics/computer-science/stencil-pattern */
 	/* https://www.cs.uky.edu/~jzhang/CS621/chapter7.pdf */
 
-	void testHeatDistributionVector(int maxiters = 0, int threadcount = 0) {
+	void testHeatDistributionVector(int dim, int maxiters = 0, int threadcount = 0) {
 		std::cout << "( " << maxiters << ", " << threadcount << ")\n";
 		//std::cout <<" HEAT DISTRIB HARDWARE CONCURRENCY: " << std::thread::hardware_concurrency() << "\n";
 		initPattern();
 		//std::cout << "Initialised pattern\n";
-		initPlate();
+		initPlate(dim);
 		//std::cout << "Initialised plate\n";
 		threadcount = threadcount ? threadcount : std::thread::hardware_concurrency();
 
@@ -105,16 +108,16 @@ namespace thdv {
 		for (int iter = 0; iter < maxiters; iter += 2) {
 
 			// Forwards iteration IN --> OUT
-			for (int i = 0; i < MAX_PLATE_DIMV; i++) {
-				for (int j = 0; j < MAX_PLATE_DIMV; j++) {
+			for (int i = 0; i < dim; i++) {
+				for (int j = 0; j < dim; j++) {
 					// Check for border
 					int factor = 0;
 					if (i < -heatPattern.getRowLowerBoundary()
-						|| i >= (MAX_PLATE_DIMV - heatPattern.getRowHigherBoundary())
+						|| i >= (dim - heatPattern.getRowHigherBoundary())
 						|| j < -heatPattern.getColumnLowerBoundary()
-						|| j >= (MAX_PLATE_DIMV - heatPattern.getColumnHigherBoundary())
+						|| j >= (dim - heatPattern.getColumnHigherBoundary())
 						) {
-						boardOut.at(MAX_PLATE_DIMV * i + j) = boardIn.at(MAX_PLATE_DIMV * i + j);
+						boardOut.at(dim * i + j) = boardIn.at(dim * i + j);
 						continue;
 					}
 					// if not bordering add
@@ -122,23 +125,23 @@ namespace thdv {
 					for (int k = 0; k < heatPattern.size(); k++) {
 						int ri = i + heatPattern.rowOffset(k);
 						int ci = j + heatPattern.columnOffset(k);
-						sum += boardIn.at(MAX_PLATE_DIMV * ri + ci) * heatPattern.itemWeight(k);
+						sum += boardIn.at(dim * ri + ci) * heatPattern.itemWeight(k);
 						factor += heatPattern.itemWeight(k);
 					}
 					sum = sum / factor;
-					boardOut.at(MAX_PLATE_DIMV * i + j) = sum;
+					boardOut.at(dim * i + j) = sum;
 				}
 			}
 			// Backwards iteration OUT --> IN
-			for (int i = 0; i < MAX_PLATE_DIMV; i++) {
-				for (int j = 0; j < MAX_PLATE_DIMV; j++) {
+			for (int i = 0; i < dim; i++) {
+				for (int j = 0; j < dim; j++) {
 					// Check for border
 					if (i < -heatPattern.getRowLowerBoundary()
-						|| i >= (MAX_PLATE_DIMV - heatPattern.getRowHigherBoundary())
+						|| i >= (dim - heatPattern.getRowHigherBoundary())
 						|| j < -heatPattern.getColumnLowerBoundary()
-						|| j >= (MAX_PLATE_DIMV - heatPattern.getColumnHigherBoundary())
+						|| j >= (dim - heatPattern.getColumnHigherBoundary())
 						) {
-						boardIn.at(MAX_PLATE_DIMV * i + j) = boardOut.at(MAX_PLATE_DIMV * i + j);
+						boardIn.at(dim * i + j) = boardOut.at(dim * i + j);
 						continue;
 					}
 					// if not bordering add
@@ -147,11 +150,11 @@ namespace thdv {
 					for (int k = 0; k < heatPattern.size(); k++) {
 						int ri = i + heatPattern.rowOffset(k);
 						int ci = j + heatPattern.columnOffset(k);
-						sum += boardOut.at(MAX_PLATE_DIMV * ri + ci) * heatPattern.itemWeight(k);
+						sum += boardOut.at(dim * ri + ci) * heatPattern.itemWeight(k);
 						factor += heatPattern.itemWeight(k);
 					}
 					sum = sum / factor;
-					boardIn.at(MAX_PLATE_DIMV * i + j) = sum;
+					boardIn.at(dim * i + j) = sum;
 				}
 			}
 
@@ -171,20 +174,20 @@ namespace thdv {
 		//	std::cout << "\n";
 		//}
 
-		printPPM("Sequential", maxiters, threadcount);
+		//printPPM(dim,"Sequential", maxiters, threadcount);
 
 
-		initPlate();
+		initPlate(dim);
 		// TEST PARALLEL
 		start = std::chrono::system_clock::now();
 		for (int iter = 0; iter < maxiters; iter += 2) {
 			// Forwards iteration
-			stencil(boardOut, boardIn, heatPattern, PSLED_BORDER, MAX_PLATE_DIMV, MAX_PLATE_DIMV);
+			stencil(boardOut, boardIn, heatPattern, PSLED_CROP, dim, dim);
 			// Backwards iteration
-			stencil(boardIn, boardOut, heatPattern, PSLED_BORDER, MAX_PLATE_DIMV, MAX_PLATE_DIMV);
+			stencil(boardIn, boardOut, heatPattern, PSLED_CROP, dim, dim);
 		}
 		end = std::chrono::system_clock::now();
-		printPPM("Parallel", maxiters, threadcount);
+		//printPPM(dim, "Parallel", maxiters, threadcount);
 
 		time = end - start;
 		std::cout << "Stencil::Parallel::" << std::to_string(time.count()) << std::endl;

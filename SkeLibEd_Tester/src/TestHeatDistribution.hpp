@@ -171,9 +171,9 @@ void testHeatDistribution(int maxiters = 0, int threadcount = 0 ) {
 	start = std::chrono::system_clock::now();
 	for (int iter = 0; iter < maxiters; iter += 2) {
 		// Forwards iteration
-		stencil(boardOut, boardIn, heatPattern, PSLED_BORDER);
+		stencil(boardOut, boardIn, heatPattern, PSLED_CROP);
 		// Backwards iteration
-		stencil(boardIn, boardOut, heatPattern, PSLED_BORDER);
+		stencil(boardIn, boardOut, heatPattern, PSLED_CROP);
 	}
 	end = std::chrono::system_clock::now();
 	printPPM("Parallel", maxiters, threadcount);
