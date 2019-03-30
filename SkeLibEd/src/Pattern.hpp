@@ -23,7 +23,7 @@ public:
 		m_colMax = 0;
 		m_colMin = 0;
 	}
-	void add(int row, int col, int weight = 1) {
+	void add(int row, int col = 0, int weight = 1) {
 
 		m_rowOffsets.push_back(row);
 		m_rowMin = row < m_rowMin ? row : m_rowMin;
@@ -133,47 +133,6 @@ public:
 	}
 };
 
-class UnsharpMasking5x5 : public Pattern {
-public:
-	UnsharpMasking5x5() {
-		// row 1
-		this->add(-2, -2, 1);
-		this->add(-2, -1, 4);
-		this->add(-2, 0, 6);
-		this->add(-2, 1, 4);
-		this->add(-2, 2, 1);
-
-		// row 2
-		this->add(-1, -2, 4);
-		this->add(-1, -1, 16);
-		this->add(-1, 0, 24);
-		this->add(-1, 1, 16);
-		this->add(-1, 2, 4);
-
-
-		// row 3
-		this->add(0, -2, 6);
-		this->add(0, -1, 24);
-		this->add(0, 0, -476);
-		this->add(0, 1, 24);
-		this->add(0, 2, 6);
-
-
-		// row 4
-		this->add(1, -2, 4);
-		this->add(1, -1, 16);
-		this->add(1, 0, 24);
-		this->add(1, 1, 16);
-		this->add(1, 2, 4);
-
-		// row 5
-		this->add(2, -2, 1);
-		this->add(2, -1, 4);
-		this->add(2, 0, 6);
-		this->add(2, 1, 4);
-		this->add(2, 2, 1);
-	}
-};
 
 class SharpenMask : public Pattern {
 public:

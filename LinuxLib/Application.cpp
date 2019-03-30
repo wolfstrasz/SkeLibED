@@ -4,7 +4,7 @@
 #include <fstream>
 
 //#include "TestCollatz.hpp"
-//#include "TestMandelbrot.hpp"
+#include "TestMandelbrot.hpp"
 //#include "TestNBody.hpp"
 //#include "mandelbrot.hpp"
 
@@ -66,7 +66,8 @@ int main(int argc, char* argv[]) {
 		arg = strtod(argv[index++], nullptr);
 
 		// Tests
-		//	mandelbrot::test(thrc, blkc, ic, ic, iters, arg);
+		mandelbrot::test(thrc, blkc, ic, ic, iters, arg);
+		return 0;
 	}
 	else if (func == 3) {
 		if (argv[index] == nullptr) {
@@ -98,15 +99,17 @@ int main(int argc, char* argv[]) {
 	}
 	else if (func == 5){
 		if (argv[index] == nullptr) {
-			printf("Head Distribution test. Use args >> ./run.out 5 [threads] [iterations]");
+			printf("Head Distribution test. Use args >> ./run.out 5 [threads] [dimensions] [iterations]");
 			return 0;
 		}
 		thrc = strtol(argv[index++], nullptr, 0);
+		//blkc = strtol(argv[index++], nullptr, 0);
+		ic = strtol(argv[index++], nullptr, 0);
 		iters = strtol(argv[index++], nullptr, 0);
 
 		// Tests
-		testHeatDistribution(iters, thrc);
-		thdv::testHeatDistributionVector(iters, thrc);
+		//testHeatDistribution(blkc, ic, iters, thrc);
+		thdv::testHeatDistributionVector(ic, iters, thrc);
 	}
 	else if (func == 6) {
 		if (argv[index] == nullptr) {

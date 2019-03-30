@@ -123,8 +123,9 @@ public:
 				}
 
 				workTime = workTime / 1000000;
-				meanTime = workTime / elementsCount;
-				meanElements = 1.00f / meanTime;
+				// meanTime = workTime / elementsCount;
+				// meanElements = 1.00f / meanTime;
+				meanElements = elementsCount / workTime;
 				scoreboard->switchWorkload(meanElements);
 
 				// get new data
@@ -153,15 +154,15 @@ public:
 				wend = std::chrono::high_resolution_clock::now();
 				workTime = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(wend - wstart).count();
 
-				
+
 			}
 
 		}
 
 		// Constructor
 		// -----------
-		DynamicMapImplementation(Elemental<EL> elemental) : elemental(elemental) {
-			this->nthreads = std::thread::hardware_concurrency();
+		DynamicMapImplementation(Elemental<EL> elemental, size_t threads) : elemental(elemental),nthreads(threads) {
+			this->nthreads = (nthreads == 0) ? std::thread::hardware_concurrency() : nthreads;
 			//this->sizeOfWork = 1000;
 		//	allThreads = new std::thread*[nthreads];
 			this->duration = 0.0f;
@@ -195,16 +196,17 @@ public:
 				((Scoreboard<IN, OUT>*)scoreboard)->scoreboardLock.unlock();
 			}
 			workTime = workTime / 1000000;
-			meanTime = workTime / elementsCount;
-			meanElements = 1.00f / meanTime;
+			// meanTime = workTime / elementsCount;
+			// meanElements = 1.00f / meanTime;
+			meanElements = elementsCount / workTime;
 			((Scoreboard<IN, OUT>*)scoreboard)->switchWorkload(meanElements);
 
-			if (((Scoreboard<IN, OUT>*)scoreboard)->curIndex + ((Scoreboard<IN, OUT>*)scoreboard)->jobSize < ((Scoreboard<IN, OUT>*)scoreboard)->inputSize) {
+		//	if (((Scoreboard<IN, OUT>*)scoreboard)->curIndex + ((Scoreboard<IN, OUT>*)scoreboard)->jobSize < ((Scoreboard<IN, OUT>*)scoreboard)->inputSize) {
 				// set new jobSize
 				elementsCount = ((Scoreboard<IN, OUT>*)scoreboard)->jobSize;
 				elementIndex = ((Scoreboard<IN, OUT>*)scoreboard)->curIndex;
 				((Scoreboard<IN, OUT>*)scoreboard)->curIndex += ((Scoreboard<IN, OUT>*)scoreboard)->jobSize;
-			}
+			//}
 
 			((Scoreboard<IN, OUT>*)scoreboard)->scoreboardLock.unlock();
 			tend = std::chrono::high_resolution_clock::now();
@@ -214,19 +216,34 @@ public:
 
 
 			size_t newJobSize = 0;
-			duration = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
+			// CHANGE 1 :duration = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
+			duration = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count() * nthreads; // overall communication time
 			//duration *= nthreads;
 			//std::cout << duration << "\n";
 			// analyse worksize
-			while (duration > 0.0f && newJobSize < input->size()) {
+
+			// CHANGE 2 {
+			// while (duration > 0.0f && newJobSize < input->size()) {
+			// 	tstart = std::chrono::high_resolution_clock::now();
+			// 	output->at(newJobSize) = elemental.elemental(input->at(newJobSize), args...);
+			// 	tend = std::chrono::high_resolution_clock::now();
+			// 	duration -= (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
+			// 	newJobSize++;
+			// }
+			//  CHANGE 2 }
 				tstart = std::chrono::high_resolution_clock::now();
-				output->at(newJobSize) = elemental.elemental(input->at(newJobSize), args...);
+				for (int i =0; i < nthreads; i++){
+					output->at(newJobSize) = elemental.elemental(input->at(newJobSize), args...);
+				}
 				tend = std::chrono::high_resolution_clock::now();
-				duration -= (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
-				newJobSize++;
-			}
-			((Scoreboard<IN, OUT>*)scoreboard)->curIndex = newJobSize;
-			newJobSize *= nthreads;
+				meanTime = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count() / nthreads; // mean time per item
+			// CHANGE 3 : newJobSize = duration/meanTime;
+				newJobSize = duration/meanTime + 1;
+
+			// CHANGE 2: ((Scoreboard<IN, OUT>*)scoreboard)->curIndex = newJobSize;
+				((Scoreboard<IN, OUT>*)scoreboard)->curIndex = nthreads;
+
+			// CHANGE 1 : newJobSize *= nthreads;
 
 			// send work size
 			((Scoreboard<IN, OUT>*)scoreboard)->jobSize = newJobSize;
@@ -277,13 +294,13 @@ public:
 		// Friend Functions for Dynamic Map Implementation Class
 		// -----------------------------------------------------
 		template<typename EL2>
-		friend DynamicMapImplementation<EL2> __DynamicMapWithAccess(EL2 el);
+		friend DynamicMapImplementation<EL2> __DynamicMapWithAccess(EL2 el, const size_t &threads);
 	};
 
 	// Friend Functions for Dynamic Map Skeleton Class
 	// -----------------------------------------------
 	template<typename EL2>
-	friend DynamicMapImplementation<EL2> __DynamicMapWithAccess(EL2 el);
+	friend DynamicMapImplementation<EL2> __DynamicMapWithAccess(EL2 el, const size_t &threads);
 };
 
 /*
@@ -292,13 +309,13 @@ public:
 * We need a wrapper!
 */
 template<typename EL>
-DynamicMapSkeleton::DynamicMapImplementation<EL> __DynamicMapWithAccess(EL el) {
-	return DynamicMapSkeleton::DynamicMapImplementation<EL>(el);
+DynamicMapSkeleton::DynamicMapImplementation<EL> __DynamicMapWithAccess(EL el, const size_t &threads) {
+	return DynamicMapSkeleton::DynamicMapImplementation<EL>(el, threads);
 }
 
 template<typename EL>
-DynamicMapSkeleton::DynamicMapImplementation<EL> DynamicMap(EL el) {
-	return __DynamicMapWithAccess(el);
+DynamicMapSkeleton::DynamicMapImplementation<EL> DynamicMap(EL el, const size_t &threads) {
+	return __DynamicMapWithAccess(el, threads);
 }
 
 #endif // !SLEDMAP_H
