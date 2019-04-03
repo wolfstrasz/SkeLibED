@@ -3,11 +3,9 @@
 #define _TEST_MANDELBROT_HPP
 
 #include "Map.hpp"
-//#include "DynamicMap.hpp"
-//#include "DynamicMap2.hpp"
-//#include "DynamicMap3.hpp"
-#include "DynamicMap6.hpp"
-//#include "DynamicMap5.hpp"
+#include "DynamicMap1.hpp"
+#include "DynamicMap2.hpp"
+#include "DynamicMap5.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -17,7 +15,7 @@
 
 
 namespace mandelbrot {
-#define mandelbrot_testcount 10
+#define mandelbrot_testcount 1
 
 	struct pixel_t{
 		int r;
@@ -63,16 +61,8 @@ namespace mandelbrot {
 		return pixel;
 	}
 
-	void test(size_t threadcount, size_t blockcount, size_t ixc, size_t iyc,size_t itermax, double arg) {
+	void test(size_t threadcount, size_t blockcount, size_t ixc, size_t iyc, size_t itermax, double arg) {
 		int itemcount = ixc * iyc;
-		// output file
-		//std::string folderName = "mandel3_" + std::to_string(std::thread::hardware_concurrency()) + "/";
-		// std::string outfileName = /*folderName +*/ "mandel_" + std::to_string(threadcount) + "T_"
-		// 	+ std::to_string(blockcount) + "B_" + std::to_string(ixc) + "D_"
-		// 	+ std::to_string(itermax) + "IT_" + std::to_string((int)arg) + "MAG";
-		// std::ofstream outfile;
-		// outfile.open(outfileName);
-
 
 		//initialisation
 		std::vector <int> in(itemcount);
@@ -82,9 +72,14 @@ namespace mandelbrot {
 		for (size_t i = 0; i < itemcount; i++) {
 			in[i] = i;
 		}
+		
 		std::chrono::duration<double, std::milli> time;
 		auto start = std::chrono::system_clock::now();
 		time = start - start;
+
+
+		double max_time = 0;
+
 
 		// Static Map
 		// ----------------------------------------------------------
@@ -104,41 +99,79 @@ namespace mandelbrot {
 		// reset time
 		time = start - start;
 
-		// // Dynamic map
-		// // ----------------------------------------------------------
-		// for (size_t test = 0; test < mandelbrot_testcount; test++) {
-		// 	std::cout << "DYNAMIC MAP Test: " << test << std::endl;
-		//
-		// 	auto start = std::chrono::system_clock::now();
-		//
-		// 	auto dynamicMap = DynamicMap(mandelbrot_elemental , threadcount/*, itemcount / (blockcount * threadcount)*/);
-		// 	dynamicMap(dynMapOut, in, arg, ixc, iyc, itermax /*, itemcount / (blockcount * threadcount)*/);
-		//
-		// 	auto end = std::chrono::system_clock::now();
-		// 	time += (end - start);
-		// 	//std::cout<<"DMAP: " << std::to_string( ((end - start).count() )) << std::endl;
-		//
-		// }
-		// //outfile << "DMAP: " << std::to_string(time.count() / mandelbrot_testcount) << std::endl;
-		// std::cout<<"DMAP: " << std::to_string(time.count() / mandelbrot_testcount) << std::endl;
+		 // Dynamic map1
+		 // ----------------------------------------------------------
+		 for (size_t test = 0; test < mandelbrot_testcount; test++) {
+		 	std::cout << "DYNAMIC MAP1 Test: " << test << std::endl;
+		
+		 	auto start = std::chrono::system_clock::now();
+		
+		 	auto dynamicMap = DynamicMap1(mandelbrot_elemental , threadcount, (itemcount / (blockcount * threadcount)));
+		 	dynamicMap(dynMapOut, in, arg, ixc, iyc, itermax /*, itemcount / (blockcount * threadcount)*/);
+		
+		 	auto end = std::chrono::system_clock::now();
+		 	time += (end - start);
+		
+		 }
+		 std::cout<<"DMAP1: " << std::to_string(time.count() / mandelbrot_testcount) << std::endl;
 
-		// close file
-		//outfile.close();
+		 time = start - start;
 
-		// Check if output is same
+		 // Dynamic map2
 		// ----------------------------------------------------------
-		// bool same = true;
-		// for (size_t i = 0; i < itemcount; i++) {
-		// 	if (dynMapOut[i] != mapOut[i]) {
-		// 		same = false;
-		// 		break;
-		// 	}
-		// }
-		// if (!same) {
-		// 	for (size_t i = 0; i < itemcount; i += 10000) {
-		// 		if (dynMapOut[i] != mapOut[i])std::cout << i << std::endl;
-		// 	}
-		// }
+		 for (size_t test = 0; test < mandelbrot_testcount; test++) {
+			 std::cout << "DYNAMIC MAP2 Test: " << test << std::endl;
+
+			 auto start = std::chrono::system_clock::now();
+
+			 auto dynamicMap = DynamicMap2(mandelbrot_elemental, threadcount, (itemcount / (blockcount * threadcount)));
+			 dynamicMap(dynMapOut, in, arg, ixc, iyc, itermax /*, itemcount / (blockcount * threadcount)*/);
+
+			 auto end = std::chrono::system_clock::now();
+			 time += (end - start);
+
+		 }
+		 std::cout << "DMAP2: " << std::to_string(time.count() / mandelbrot_testcount) << std::endl;
+
+		 time = start - start;
+
+
+		 time = start - start;
+
+		 // Dynamic map 5 
+	// ----------------------------------------------------------
+		 for (size_t test = 0; test < mandelbrot_testcount; test++) {
+			 std::cout << "DYNAMIC MAP5 Test: " << test << std::endl;
+
+			 auto start = std::chrono::system_clock::now();
+
+			 auto dynamicMap = DynamicMap5(mandelbrot_elemental, threadcount, (itemcount / (blockcount * threadcount)));
+			 dynamicMap(dynMapOut, in, arg, ixc, iyc, itermax /*, itemcount / (blockcount * threadcount)*/);
+
+			 auto end = std::chrono::system_clock::now();
+			 time += (end - start);
+
+		 }
+		 std::cout << "DMAP5: " << std::to_string(time.count() / mandelbrot_testcount) << std::endl;
+
+
+		 time = start - start;
+	
+
+		 //// Check if output is same
+		 //// ----------------------------------------------------------
+		 //bool same = true;
+		 //for (size_t i = 0; i < itemcount; i++) {
+		 //	if (dynMapOut[i] != mapOut[i]) {
+		 //		same = false;
+		 //		break;
+		 //	}
+		 //}
+		 //if (!same) {
+		 //	for (size_t i = 0; i < itemcount; i += 10000) {
+		 //		if (dynMapOut[i] != mapOut[i])std::cout << i << std::endl;
+		 //	}
+		 //}
 	}
 }
 #endif

@@ -3,11 +3,9 @@
 #include <chrono>
 #include <fstream>
 
-//#include "TestCollatz.hpp"
+#include "TestNBody.hpp"
+#include "TestCollatz.hpp"
 #include "TestMandelbrot.hpp"
-//#include "TestNBody.hpp"
-//#include "mandelbrot.hpp"
-
 #include "TestStencil.hpp"
 #include "TestHeatDistribution.hpp"
 #include "TestStencilVector.hpp"
@@ -26,6 +24,20 @@ int main(int argc, char* argv[]) {
 	double arg = 0.0f;
 	//--------------------------------------------
 	int index = 1;
+
+	if (argv[index] == nullptr) {
+		printf("Incorrect function input!\n");
+		printf("Use one of the following sets of arguments for different testing\n");
+		printf("Stencil 2D Array Unit tests:\r\t\t\t\t >> ./run.out -1 \n");
+		printf("Stencil Vector Unit tests:  \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Collatz Map test:           \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Mandelbrot Map test:        \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Nbody Map test:             \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Heat equation test:         \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Game of Life test:          \r\t\t\t\t >> ./run.out -2 \n");
+		printf("");
+	}
+
 	func = strtol(argv[index++], nullptr, 0);
 
 	if (func == -1) {
@@ -43,7 +55,7 @@ int main(int argc, char* argv[]) {
 	else if (func == 1) {
 
 		if (argv[index] == nullptr) {
-			printf("Collatz test. Use args >> ./run.out 1 [threads] [blocks] [itemscount] [argument]");
+			printf("Collatz test. Use args >> ./run.out 1 [threads] [blocks] [itemscount] [argument]\n");
 			return 0;
 		}
 		thrc = strtol(argv[index++], nullptr, 0);
@@ -52,11 +64,11 @@ int main(int argc, char* argv[]) {
 		arg = strtod(argv[index++], nullptr);
 
 		// Tests
-		//	collatz::test(thrc, blkc, ic, arg);
+		collatz::test(thrc, blkc, ic, arg);
 	}
 	else if (func == 2) {
 		if (argv[index] == nullptr) {
-			printf("Mandelbrot test. Use args >> ./run.out 2 [threads] [blocks] [itemscount] [iterations] [argument]");
+			printf("Mandelbrot test. Use args >> ./run.out 2 [threads] [blocks] [array dim] [iterations] [magnification]\n");
 			return 0;
 		}
 		thrc = strtol(argv[index++], nullptr, 0);
@@ -71,7 +83,7 @@ int main(int argc, char* argv[]) {
 	}
 	else if (func == 3) {
 		if (argv[index] == nullptr) {
-			printf("Nbody test. Use args >> ./run.out 3 [threads] [blocks] [itemscount] [iterations]");
+			printf("Nbody test. Use args >> ./run.out 3 [threads] [blocks] [itemscount] [iterations]\n");
 			return 0;
 		}
 		thrc = strtol(argv[index++], nullptr, 0);
@@ -80,11 +92,11 @@ int main(int argc, char* argv[]) {
 		iters = strtol(argv[index++], nullptr, 0);
 
 		// Tests
-		//	nbody::test(thrc, blkc, ic, iters);
+		nbody::test(thrc, blkc, ic, iters);
 	}
 	else if (func == 4) {
 		if (argv[index] == nullptr) {
-			printf("Draw test. Use args >> ./run.out 4 [threads] [blocks] [itemscount] [iterations] [argument]");
+			printf("Draw test. Use args >> ./run.out 4 [threads] [blocks] [itemscount] [iterations] [argument]\n");
 			return 0;
 		}
 
@@ -99,7 +111,7 @@ int main(int argc, char* argv[]) {
 	}
 	else if (func == 5){
 		if (argv[index] == nullptr) {
-			printf("Head Distribution test. Use args >> ./run.out 5 [threads] [dimensions] [iterations]");
+			printf("Head Distribution test. Use args >> ./run.out 5 [threads] [dimensions] [iterations]\n");
 			return 0;
 		}
 		thrc = strtol(argv[index++], nullptr, 0);
@@ -113,7 +125,7 @@ int main(int argc, char* argv[]) {
 	}
 	else if (func == 6) {
 		if (argv[index] == nullptr) {
-			printf("Game of Life test. Use args >> ./run.out 6 [threads] [xdim] [ydim] [iterations] [pattern_radius]");
+			printf("Game of Life test. Use args >> ./run.out 6 [threads] [xdim] [ydim] [iterations] [pattern_radius]\n");
 			return 0;
 		}
 		thrc = strtol(argv[index++], nullptr, 0);
@@ -129,8 +141,13 @@ int main(int argc, char* argv[]) {
 
 		printf("Incorrect function input!\n");
 		printf("Use one of the following sets of arguments for different testing\n");
-		printf("Stencil 2D Array Unit tests:\t >> ./run.out -1 \n");
-		printf("Stencil Vector Unit tests:  \t >> ./run.out -2 \n");
+		printf("Stencil 2D Array Unit tests:\r\t\t\t\t >> ./run.out -1 \n");
+		printf("Stencil Vector Unit tests:  \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Collatz Map test:           \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Mandelbrot Map test:        \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Nbody Map test:             \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Heat equation test:         \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Game of Life test:          \r\t\t\t\t >> ./run.out -2 \n");
 		printf("");
 	}
 

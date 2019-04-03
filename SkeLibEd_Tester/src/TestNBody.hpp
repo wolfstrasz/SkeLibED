@@ -4,11 +4,9 @@
 
 
 #include "Map.hpp"
-//#include "DynamicMap.hpp"
-//#include "DynamicMap2.hpp"
-//#include "DynamicMap3.hpp"
-//#include "DynamicMap5.hpp"
-#include "DynamicMap6.hpp"
+#include "DynamicMap1.hpp"
+#include "DynamicMap2.hpp"
+#include "DynamicMap5.hpp"
 
 
 #include <chrono>
@@ -18,14 +16,14 @@
 #include <cmath>
 
 namespace nbody {
-#define nbody_test_count 10
+#define nbody_test_count 1
 
 	const float G = 1.0;
 	const float delta_t = 0.1;
 	size_t threads;
 	size_t blocks;
 	size_t iterations;
-
+	size_t particle_num;
 	// Particle data structure that is used as an element type.
 	struct Particle {
 		float x, y, z;
@@ -117,8 +115,8 @@ namespace nbody {
 
 		std::vector<size_t> indices(particles.size());
 
-		auto nbody_init = Map(init/*, threads, blocks*/);
-		auto nbody_simulate_step = Map(move/*, threads, blocks*/);
+		auto nbody_init = Map(init, threads, blocks);
+		auto nbody_simulate_step = Map(move, threads, blocks);
 
 		// initialization of indices vector
 		for (size_t i = 0; i < particles.size(); i++) {
@@ -141,15 +139,70 @@ namespace nbody {
 
 	}
 	// Function of Dynamic map
-	void dnbody(std::vector<Particle> &particles) {
+	void dnbody2(std::vector<Particle> &particles) {
 
 		size_t np = particles.size();
 		std::vector<Particle> doublebuffer(particles.size());
 
 		std::vector<size_t> indices(particles.size());
+		size_t chunkSize = particle_num / (blocks * threads);
 
-		auto nbody_init = DynamicMap(init);
-		auto nbody_simulate_step = DynamicMap(move);
+		auto nbody_init = DynamicMap2(init, threads, chunkSize);
+		auto nbody_simulate_step = DynamicMap2(move, threads, chunkSize);
+
+		// initialization of indices vector
+		for (size_t i = 0; i < particles.size(); i++) {
+			indices[i] = i;
+		}
+
+		// particle vectors initialization
+		nbody_init(particles, indices, np);
+
+		// simulation
+		for (size_t i = 0; i < iterations; i += 2) {
+			nbody_simulate_step(doublebuffer, indices, particles);
+			nbody_simulate_step(particles, indices, doublebuffer);
+		}
+	}
+
+	// Function of Dynamic map
+	void dnbody1(std::vector<Particle> &particles) {
+
+		size_t np = particles.size();
+		std::vector<Particle> doublebuffer(particles.size());
+
+		std::vector<size_t> indices(particles.size());
+		size_t chunkSize = particle_num / (blocks * threads);
+
+		auto nbody_init = DynamicMap1(init, threads, chunkSize);
+		auto nbody_simulate_step = DynamicMap1(move, threads, chunkSize);
+
+		// initialization of indices vector
+		for (size_t i = 0; i < particles.size(); i++) {
+			indices[i] = i;
+		}
+
+		// particle vectors initialization
+		nbody_init(particles, indices, np);
+
+		// simulation
+		for (size_t i = 0; i < iterations; i += 2) {
+			nbody_simulate_step(doublebuffer, indices, particles);
+			nbody_simulate_step(particles, indices, doublebuffer);
+		}
+	}
+
+	// Function of Dynamic map
+	void dnbody5(std::vector<Particle> &particles) {
+
+		size_t np = particles.size();
+		std::vector<Particle> doublebuffer(particles.size());
+
+		std::vector<size_t> indices(particles.size());
+		size_t chunkSize = particle_num / (blocks * threads, chunkSize);
+
+		auto nbody_init = DynamicMap5(init, threads);
+		auto nbody_simulate_step = DynamicMap5(move, threads, chunkSize);
 
 		// initialization of indices vector
 		for (size_t i = 0; i < particles.size(); i++) {
@@ -168,18 +221,7 @@ namespace nbody {
 
 
 	void test(size_t threadcount, size_t blockcount, size_t np, size_t iters) {
-	//	std::cout << "THREADS: " << threadcount << std::endl;		// number of threads
-	//	std::cout << "BLOCKS:  " << blockcount << std::endl;		// number of blocks
-	//	std::cout << "IC:      " << np << std::endl;		// number of items in a dimension
-	//	std::cout << "ITERS:   " << iters << std::endl;		// number of iterations
-
-		// Output file
-		//std::string folderName = "nbody3_" + std::to_string(std::thread::hardware_concurrency()) + "/";
-		std::string outfileName = /*folderName +*/ "nbody_" + std::to_string(threadcount) + "T_"
-			+ std::to_string(blockcount) + "B_" + std::to_string(np) + "P_" + std::to_string(iters) + "IT";
-		std::ofstream outfile;
-		outfile.open(outfileName);
-
+		particle_num = np;
 		// initialisation
 		threads = threadcount;
 		blocks = blockcount;
@@ -188,24 +230,62 @@ namespace nbody {
 		std::vector<Particle> dParticles = sParticles;
 
 		std::chrono::duration<double, std::milli> time;
+		auto start = std::chrono::system_clock::now();
+		time = start - start;
+
 
 		// test static map
 		// -------------------------------------------
-		std::cout << "SMAP TEST\n";
-		auto start = std::chrono::system_clock::now();
-		snbody(sParticles);
-		auto end = std::chrono::system_clock::now();
-		time = end - start;
-		outfile << "SMAP: " << std::to_string(time.count()) << std::endl;
+		for (int t = 0; t < nbody_test_count; t++) {
+			std::cout << "SMAP TEST:" << t << "\n";
+			auto start = std::chrono::system_clock::now();
+			snbody(sParticles);
+			auto end = std::chrono::system_clock::now();
+			time += end - start;
+		}
+		std::cout << "SMAP: " << std::to_string(time.count()/nbody_test_count) << std::endl;
+		time = start - start;
+
+
+		time = start - start;
+		// test dynamic map
+		// ----------------------------------------------
+		for (int t = 0; t < nbody_test_count; t++) {
+			std::cout << "DMAP1 TEST:" << t << "\n";
+			auto start = std::chrono::system_clock::now();
+			dnbody1(sParticles);
+			auto end = std::chrono::system_clock::now();
+			time += end - start;
+
+		}
+		std::cout << "DMAP1: " << std::to_string(time.count() / nbody_test_count) << std::endl;
+		time = start - start;
 
 		// test dynamic map
 		// ----------------------------------------------
-		std::cout << "DMAP TEST\n";
-		start = std::chrono::system_clock::now();
-		dnbody(sParticles);
-		end = std::chrono::system_clock::now();
-		time = end-start;
-		outfile << "DMAP: " << std::to_string(time.count()) << std::endl;
+		for (int t = 0; t < nbody_test_count; t++) {
+			std::cout << "DMAP2 TEST:" << t << "\n";
+			auto start = std::chrono::system_clock::now();
+			dnbody2(sParticles);
+			auto end = std::chrono::system_clock::now();
+			time += end - start;
+
+		}
+		std::cout << "DMAP2: " << std::to_string(time.count() / nbody_test_count) << std::endl;
+		time = start - start;
+
+
+		// test dynamic map
+		// ----------------------------------------------
+		for (int t = 0; t < nbody_test_count; t++) {
+			std::cout << "DMAP5 TEST:" << t << "\n";
+			auto start = std::chrono::system_clock::now();
+			dnbody5(sParticles);
+			auto end = std::chrono::system_clock::now();
+			time += end - start;
+
+		}
+		std::cout << "DMAP5: " << std::to_string(time.count() / nbody_test_count) << std::endl;
 
 	}
 

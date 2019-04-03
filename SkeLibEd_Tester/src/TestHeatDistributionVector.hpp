@@ -10,6 +10,7 @@
 #include <math.h>
 
 namespace thdv {
+#define thdv_test_count 10
 	/* uses Jacobi method to solve a sparse system of linear equations */
 	/* to solve we need conditions at the border to be kept constant */
 //#define MAX_PLATE_DIMV 128
@@ -85,114 +86,96 @@ namespace thdv {
 
 	void testHeatDistributionVector(int dim, int maxiters = 0, int threadcount = 0) {
 		std::cout << "( " << maxiters << ", " << threadcount << ")\n";
-		//std::cout <<" HEAT DISTRIB HARDWARE CONCURRENCY: " << std::thread::hardware_concurrency() << "\n";
 		initPattern();
-		//std::cout << "Initialised pattern\n";
-		initPlate(dim);
-		//std::cout << "Initialised plate\n";
-		threadcount = threadcount ? threadcount : std::thread::hardware_concurrency();
-
-		//for (int i = 0; i < MAX_PLATE_DIM; i++) {
-		//	for (int j = 0; j < MAX_PLATE_DIM; j++) {
-		//		std::cout << boardIn[i][j] << "<>";
-		//	}
-		//	std::cout << "\n";
-		//}
-
-	//	std::cout << "( " << maxiters << ", " << threadcount << ")\n";
 		auto stencil = Stencil(threadcount);
+
+
+
 		//std::cout << "SEQ TEST START\n";
 		// TEST SQUENTIAL
-		auto start = std::chrono::system_clock::now();
 
-		//for (int iter = 0; iter < maxiters; iter += 2) {
-
-		//	// Forwards iteration IN --> OUT
-		//	for (int i = 0; i < dim; i++) {
-		//		for (int j = 0; j < dim; j++) {
-		//			// Check for border
-		//			int factor = 0;
-		//			if (i < -heatPattern.getRowLowerBoundary()
-		//				|| i >= (dim - heatPattern.getRowHigherBoundary())
-		//				|| j < -heatPattern.getColumnLowerBoundary()
-		//				|| j >= (dim - heatPattern.getColumnHigherBoundary())
-		//				) {
-		//				boardOut.at(dim * i + j) = boardIn.at(dim * i + j);
-		//				continue;
+		//for (int t = 0; t < thdv_test_count; t++) {
+		//  initPlate(dim);
+		//	auto start = std::chrono::system_clock::now();
+		//	for (int iter = 0; iter < maxiters; iter += 2) {
+		//
+		//		// Forwards iteration IN --> OUT
+		//		for (int i = 0; i < dim; i++) {
+		//			for (int j = 0; j < dim; j++) {
+		//				// Check for border
+		//				int factor = 0;
+		//				if (i < -heatPattern.getRowLowerBoundary()
+		//					|| i >= (dim - heatPattern.getRowHigherBoundary())
+		//					|| j < -heatPattern.getColumnLowerBoundary()
+		//					|| j >= (dim - heatPattern.getColumnHigherBoundary())
+		//					) {
+		//					boardOut.at(dim * i + j) = boardIn.at(dim * i + j);
+		//					continue;
+		//				}
+		//				// if not bordering add
+		//				float sum = 0;
+		//				for (int k = 0; k < heatPattern.size(); k++) {
+		//					int ri = i + heatPattern.rowOffset(k);
+		//					int ci = j + heatPattern.columnOffset(k);
+		//					sum += boardIn.at(dim * ri + ci) * heatPattern.itemWeight(k);
+		//					factor += heatPattern.itemWeight(k);
+		//				}
+		//				sum = sum / factor;
+		//				boardOut.at(dim * i + j) = sum;
 		//			}
-		//			// if not bordering add
-		//			float sum = 0;
-		//			for (int k = 0; k < heatPattern.size(); k++) {
-		//				int ri = i + heatPattern.rowOffset(k);
-		//				int ci = j + heatPattern.columnOffset(k);
-		//				sum += boardIn.at(dim * ri + ci) * heatPattern.itemWeight(k);
-		//				factor += heatPattern.itemWeight(k);
+		//		}
+		//		// Backwards iteration OUT --> IN
+		//		for (int i = 0; i < dim; i++) {
+		//			for (int j = 0; j < dim; j++) {
+		//				// Check for border
+		//				if (i < -heatPattern.getRowLowerBoundary()
+		//					|| i >= (dim - heatPattern.getRowHigherBoundary())
+		//					|| j < -heatPattern.getColumnLowerBoundary()
+		//					|| j >= (dim - heatPattern.getColumnHigherBoundary())
+		//					) {
+		//					boardIn.at(dim * i + j) = boardOut.at(dim * i + j);
+		//					continue;
+		//				}
+		//				// if not bordering add
+		//				float sum = 0;
+		//				int factor = 0;
+		//				for (int k = 0; k < heatPattern.size(); k++) {
+		//					int ri = i + heatPattern.rowOffset(k);
+		//					int ci = j + heatPattern.columnOffset(k);
+		//					sum += boardOut.at(dim * ri + ci) * heatPattern.itemWeight(k);
+		//					factor += heatPattern.itemWeight(k);
+		//				}
+		//				sum = sum / factor;
+		//				boardIn.at(dim * i + j) = sum;
 		//			}
-		//			sum = sum / factor;
-		//			boardOut.at(dim * i + j) = sum;
 		//		}
 		//	}
-		//	// Backwards iteration OUT --> IN
-		//	for (int i = 0; i < dim; i++) {
-		//		for (int j = 0; j < dim; j++) {
-		//			// Check for border
-		//			if (i < -heatPattern.getRowLowerBoundary()
-		//				|| i >= (dim - heatPattern.getRowHigherBoundary())
-		//				|| j < -heatPattern.getColumnLowerBoundary()
-		//				|| j >= (dim - heatPattern.getColumnHigherBoundary())
-		//				) {
-		//				boardIn.at(dim * i + j) = boardOut.at(dim * i + j);
-		//				continue;
-		//			}
-		//			// if not bordering add
-		//			float sum = 0;
-		//			int factor = 0;
-		//			for (int k = 0; k < heatPattern.size(); k++) {
-		//				int ri = i + heatPattern.rowOffset(k);
-		//				int ci = j + heatPattern.columnOffset(k);
-		//				sum += boardOut.at(dim * ri + ci) * heatPattern.itemWeight(k);
-		//				factor += heatPattern.itemWeight(k);
-		//			}
-		//			sum = sum / factor;
-		//			boardIn.at(dim * i + j) = sum;
-		//		}
-		//	}
-
-
-		//}
-
-		auto end = std::chrono::system_clock::now();
-		std::chrono::duration<double, std::milli> time = end - start;
-		//std::cout << "Stencil::Sequential::" << std::to_string(time.count()) << std::endl;
-
-		std::cout << "PARALLEL TEST START\n";
-
-		//for (int i = 0; i < MAX_PLATE_DIM; i++) {
-		//	for (int j = 0; j < MAX_PLATE_DIM; j++) {
-		//		std::cout << boardIn[i][j] << "<>";
-		//	}
-		//	std::cout << "\n";
+		//	auto end = std::chrono::system_clock::now();
+		//	std::chrono::duration<double, std::milli> time = end - start;
+		//	std::cout << "Stencil::Sequential::" << std::to_string(time.count()) << std::endl;
 		//}
 
 		//printPPM(dim,"Sequential", maxiters, threadcount);
 
 
-		initPlate(dim);
 		// TEST PARALLEL
-		start = std::chrono::system_clock::now();
-		for (int iter = 0; iter < maxiters; iter += 2) {
-			// Forwards iteration
-			stencil(boardOut, boardIn, heatPattern, PSLED_CROP, dim, dim);
-			// Backwards iteration
-			stencil(boardIn, boardOut, heatPattern, PSLED_CROP, dim, dim);
-		}
-		end = std::chrono::system_clock::now();
-		printPPM(dim, "Parallel", maxiters, threadcount);
+		for (int t = 0; t < thdv_test_count; t++) {
+			initPlate(dim);
+			auto start = std::chrono::system_clock::now();
+			start = std::chrono::system_clock::now();
+			for (int iter = 0; iter < maxiters; iter += 2) {
+				// Forwards iteration
+				stencil(boardOut, boardIn, heatPattern, PSLED_CROP, dim, dim);
+				// Backwards iteration
+				stencil(boardIn, boardOut, heatPattern, PSLED_CROP, dim, dim);
+			}
 
-		time = end - start;
+			auto end = std::chrono::system_clock::now();
+			std::chrono::duration<double, std::milli> time = end - start;
+	
 		std::cout << "Stencil::Parallel::" << std::to_string(time.count()) << std::endl;
-
-
+		}
+		//printPPM(dim, "Parallel", maxiters, threadcount);
 	}
 
 

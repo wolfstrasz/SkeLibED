@@ -1,5 +1,5 @@
-#ifndef DYNAMICMAP_H
-#define DYNAMICMAP_H
+#ifndef DYNAMICMAP4_H
+#define DYNAMICMAP4_H
 
 #include <cstdlib>
 #include <iostream>
@@ -13,10 +13,10 @@
 #include <thread>
 #include <mutex>
 #include <chrono>
-class DynamicMapSkeleton {
+class DynamicMapSkeleton4 {
 
 private:
-	DynamicMapSkeleton() {}
+	DynamicMapSkeleton4() {}
 
 	// Elemental - function used in mapping
 	// ------------------------------------
@@ -32,16 +32,19 @@ public:
 	// MapImplementation
 	// ------------------
 	template<typename EL>
-	class DynamicMapImplementation {
+	class DynamicMapImplementation4 {
 	private:
-		Elemental<EL> elemental;
 		size_t nthreads;
+		size_t sizeOfChunk;
+		Elemental<EL> elemental;
 		std::thread **allThreads;
+
+
+
 
 		std::chrono::high_resolution_clock::time_point tstart;
 		std::chrono::high_resolution_clock::time_point tend;
 		double duration = 0.0f;
-		//	size_t sizeOfWork;
 		void* scoreboard;
 
 		template<typename IN, typename OUT>
@@ -62,7 +65,6 @@ public:
 			std::mutex scoreboardLock;
 
 			// timing
-			//std::vector<double>* scoretiming;
 			// constructor
 			Scoreboard(std::vector<IN> *in, std::vector<OUT> *out, size_t nthreads) {
 				this->input = in;
@@ -72,7 +74,6 @@ public:
 				inputSize = in->size();
 				curIndex = 0;
 				jobSize = 0;
-				//scoretiming = new std::vector<double>(nthreads);
 			}
 			~Scoreboard() {}
 		};
@@ -83,10 +84,6 @@ public:
 		// --------------------------------------------
 		template<typename IN, typename OUT, typename ...ARGs>
 		void threadMap(Scoreboard<IN, OUT> *scoreboard, size_t id, ARGs... args) {
-			//std::chrono::high_resolution_clock::time_point thstart;
-			//std::chrono::high_resolution_clock::time_point thend;
-			//double timeForScore = 0.0f;
-			//size_t jobsDone = 0;
 			size_t elementsCount;
 			size_t elementIndex;
 			
@@ -95,10 +92,7 @@ public:
 
 			while (!scoreboard->isFinished) {
 				// Lock scoreboard
-				//thstart = std::chrono::high_resolution_clock::now();
 				while (!scoreboard->scoreboardLock.try_lock());
-				//	thend = std::chrono::high_resolution_clock::now();
-				//	timeForScore += (double)std::chrono::duration_cast<std::chrono::nanoseconds>(thend - thstart).count();
 				if (scoreboard->isFinished) {
 					scoreboard->scoreboardLock.unlock();
 					break;
@@ -124,19 +118,16 @@ public:
 				for (int elementsFinished = 0; elementsFinished < elementsCount; elementsFinished++) {
 					scoreboard->output->at(elementIndex + elementsFinished) = elemental.elemental(scoreboard->input->at(elementIndex + elementsFinished), args...);
 				}
-				//jobsDone++;
 			}
-				//scoreboard->scoretiming->at(id) = timeForScore / jobsDone;
 
 		}
 
 		// Constructor
 		// -----------
-		DynamicMapImplementation(Elemental<EL> elemental) : elemental(elemental) {
+		DynamicMapImplementation4(Elemental<EL> elemental) : elemental(elemental) {
 			this->nthreads = std::thread::hardware_concurrency();
-			//	this->sizeOfWork = 0;
+			this->sizeOfChunk = sizeOfChunk ? sizeOfChunk : 100000;
 			this->duration = 0.0f;
-			//this->allThreads = new std::thread*[nthreads];
 		}
 
 	public:
@@ -144,16 +135,15 @@ public:
 		void start_init(std::vector<OUT> *output, std::vector<IN> *input, ARGs... args) {
 			// create threads
 			for (size_t t = 0; t < nthreads; t++) {
-				allThreads[t] = new std::thread(&DynamicMapImplementation<EL>::threadMap<IN, OUT, ARGs...>,
+				allThreads[t] = new std::thread(&DynamicMapImplementation4<EL>::threadMap<IN, OUT, ARGs...>,
 					this, ((Scoreboard<IN, OUT>*)scoreboard), t, args...);
 			}
 		}
 
 		template <typename IN, typename OUT, typename ...ARGs>
 		void start_analysis(std::vector<OUT> *output, std::vector<IN> *input, ARGs... args) {
-
 			size_t newJobSize = 0;
-			duration = 10000000.0f / nthreads;
+			duration = 10000000.0f / nthreads; // nanosec = 0.01s	
 			double durationAtStart = duration;
 			// analyse worksize
 			while (duration > 0.0f && newJobSize < input->size()) {
@@ -165,10 +155,6 @@ public:
 			}
 			((Scoreboard<IN, OUT>*)scoreboard)->curIndex = newJobSize;
 			newJobSize *= nthreads;
-		//	std::cout << "JOBSIZE: " << newJobSize << "\n";
-		//	std::cout << "TIME:  " << durationAtStart << "\n";
-		//	std::cout << "MICRO: " << durationAtStart / 1000.0f << "\n";
-		//	std::cout << "MILLI: " << durationAtStart / 1000.0f / 1000.0f << "\n";
 
 			// send work size
 			((Scoreboard<IN, OUT>*)scoreboard)->jobSize = newJobSize;
@@ -183,47 +169,24 @@ public:
 			this->allThreads = new std::thread*[nthreads];
 			scoreboard = new Scoreboard<IN, OUT>(&input, &output, nthreads);
 
-			//std::cout << "THREADER INIT\n";
 			// USE THREADER
 			// -----------------------------------------------------------------------------------
 			// start threader
 			std::thread *threader;
-			threader = new std::thread(&DynamicMapImplementation<EL>::start_init<IN, OUT, ARGs...>, this, &output, &input, args...);
+			threader = new std::thread(&DynamicMapImplementation4<EL>::start_init<IN, OUT, ARGs...>, this, &output, &input, args...);
+
 			// main thread analyses
-			//std::cout << "MAIN THREAD ANALYSIS\n";
 			start_analysis(&output, &input, args...);
 
 
 			// delete threader
 			threader->join();
 			delete threader;
-			//	std::cout << "THREADER DELETED\n";
-			//
-				// USE ANALYSER
-				// -----------------------------------------------------------------------------------
-				// start analyser
-				//std::thread *analyser;
-				//tstart = std::chrono::high_resolution_clock::now();
-				////analyser = new std::thread(&DynamicMapImplementation<EL>::start_analysis<IN,OUT,ARGs...>, this, &output, &input, args...);
-				//analyse(&output, &input, args...);
-				//tend = std::chrono::high_resolution_clock::now();
-				//duration = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
-//
-				// main thread initialises threads
-				//start_init(output, input, args...);
-//
-				//analyser->join();
-				//delete analyser;
-//
 
-				// Join threads
-				// -----------------------------------------------------------------------------------
+			// Join threads
+			// -----------------------------------------------------------------------------------
 			for (size_t t = 0; t < nthreads; ++t) {
 				allThreads[t]->join();
-				//	std::cout << "THREAD ID:  " << t << "\n";
-				//	std::cout << "SCORE TIME: " << ((Scoreboard<IN, OUT>*)scoreboard)->scoretiming->at(t) / 1000.0f / 1000.0f << "\n";
-				//	std::cout << "INIT  TIME: " << ((Scoreboard<IN, OUT>*)scoreboard)->inittiming->at(t) << "\n";
-
 				delete allThreads[t];
 			}
 			delete allThreads;
@@ -231,16 +194,16 @@ public:
 
 		}
 
-		// Friend Functions for Dynamic Map Implementation Class
-		// -----------------------------------------------------
-		template<typename EL2>
-		friend DynamicMapImplementation<EL2> __DynamicMapWithAccess(EL2 el);
+	// Friend Functions for Dynamic Map Implementation Class
+	// -----------------------------------------------------
+	template<typename EL2>
+	friend DynamicMapImplementation4<EL2> __DynamicMapWithAccess4(EL2 el, const size_t &threads, const size_t &sizeOfChunk);
 	};
 
 	// Friend Functions for Dynamic Map Skeleton Class
 	// -----------------------------------------------
 	template<typename EL2>
-	friend DynamicMapImplementation<EL2> __DynamicMapWithAccess(EL2 el);
+	friend DynamicMapImplementation4<EL2> __DynamicMapWithAccess4(EL2 el, const size_t &threads, const size_t &sizeOfChunk);
 };
 
 /*
@@ -249,13 +212,15 @@ public:
 * We need a wrapper!
 */
 template<typename EL>
-DynamicMapSkeleton::DynamicMapImplementation<EL> __DynamicMapWithAccess(EL el) {
-	return DynamicMapSkeleton::DynamicMapImplementation<EL>(el);
+DynamicMapSkeleton4::DynamicMapImplementation4<EL> __DynamicMapWithAccess4(EL el, const size_t &threads, const size_t &sizeOfChunk) {
+	return DynamicMapSkeleton4::DynamicMapImplementation4<EL>(el, threads, sizeOfChunk);
 }
 
 template<typename EL>
-DynamicMapSkeleton::DynamicMapImplementation<EL> DynamicMap(EL el) {
-	return __DynamicMapWithAccess(el);
+DynamicMapSkeleton4::DynamicMapImplementation4<EL> DynamicMap4(EL el, const size_t &threads = 0, const size_t &sizeOfChunk = 0) {
+	return __DynamicMapWithAccess4(el, threads, sizeOfChunk);
 }
+
+
 
 #endif // !SLEDMAP_H
