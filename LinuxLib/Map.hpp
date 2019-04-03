@@ -11,7 +11,7 @@
 #include <utility>
 #include <thread>
 #include <mutex>
-
+#include <chrono>
 class MapSkeleton {
 
 private:
@@ -42,7 +42,7 @@ public:
 		// --------------
 		template<typename IN, typename OUT>
 		class ThreadArgument {
-			public:
+		public:
 			size_t threadInputIndex;
 			size_t chunkSize;
 
@@ -72,51 +72,105 @@ public:
 		//	THREADS[t] = new std::thread(&MapImplementation<EL>::threadMap<IN, OUT, ARGs...>, this, threadArguments, t, args...);
 		template<typename IN, typename OUT, typename ...ARGs>
 		void threadMap(ThreadArgument<IN, OUT> *threadArguments, size_t threadID, ARGs... args) {
+			if (threadID != 0) {
+				auto input = threadArguments[threadID].input;
+				auto output = threadArguments[threadID].output;
 
-			auto input = threadArguments[threadID].input;
-			auto output = threadArguments[threadID].output;
+				size_t assistedThreadID = threadID; // Assigns first job to be helping itself
+				do {
 
-			size_t assistedThreadID = threadID; // Assigns first job to be helping itself
-			do {
-
-				// Assign new variables for data for easier reading
-				// ------------------------------------------------
-				size_t			nDataBlocks		 = threadArguments[assistedThreadID].nDataBlocks;
-				std::mutex*		dataBlockMutex	 = threadArguments[assistedThreadID].dataBlockMutex;
-				unsigned char*	dataBlockFlags	 = threadArguments[assistedThreadID].dataBlockFlags;
-				std::size_t*	dataBlockIndices = threadArguments[assistedThreadID].dataBlockIndices;
+					// Assign new variables for data for easier reading
+					// ------------------------------------------------
+					size_t			nDataBlocks = threadArguments[assistedThreadID].nDataBlocks;
+					std::mutex*		dataBlockMutex = threadArguments[assistedThreadID].dataBlockMutex;
+					unsigned char*	dataBlockFlags = threadArguments[assistedThreadID].dataBlockFlags;
+					std::size_t*	dataBlockIndices = threadArguments[assistedThreadID].dataBlockIndices;
 
 
-				// Starts to iterate over data blocks of given thread (assisting / not)
-				// --------------------------------------------------------------------
-				size_t dataBlock = 0;
-				while (dataBlock < nDataBlocks) {
+					// Starts to iterate over data blocks of given thread (assisting / not)
+					// --------------------------------------------------------------------
+					size_t dataBlock = 0;
+					while (dataBlock < nDataBlocks) {
 
-					// Lock and check if block is has not been processed already
-					// ---------------------------------------------------------
-					dataBlockMutex->lock();
+						// Lock and check if block is has not been processed already
+						// ---------------------------------------------------------
+						dataBlockMutex->lock();
 
-					if (dataBlockFlags[dataBlock] == 1) {
-						dataBlockFlags[dataBlock] = 0;	// Set as processed
-						dataBlockMutex->unlock();
+						if (dataBlockFlags[dataBlock] == 1) {
+							dataBlockFlags[dataBlock] = 0;	// Set as processed
+							dataBlockMutex->unlock();
 
-						// Process the data block
-						// ----------------------
-						for (size_t elementIndex = dataBlockIndices[dataBlock];
+							// Process the data block
+							// ----------------------
+							for (size_t elementIndex = dataBlockIndices[dataBlock];
 								elementIndex < dataBlockIndices[dataBlock + 1];
-									elementIndex++)
-							output->at(elementIndex) = elemental.elemental(input->at(elementIndex), args...);
+								elementIndex++)
+								output->at(elementIndex) = elemental.elemental(input->at(elementIndex), args...);
 
-					} else dataBlockMutex->unlock();
+						}
+						else dataBlockMutex->unlock();
 
-					dataBlock++;
-				}
+						dataBlock++;
+					}
 
-				// When finished working on the available data blocks of a given thread
-				// -> continue to search for other work
-				// -------------------------------------
-				assistedThreadID = (assistedThreadID + 1) % nthreads;
-			} while (assistedThreadID != threadID);
+					// When finished working on the available data blocks of a given thread
+					// -> continue to search for other work
+					// -------------------------------------
+					assistedThreadID = (assistedThreadID + 1) % nthreads;
+				} while (assistedThreadID != threadID);
+			}
+			else {
+				auto input = threadArguments[threadID].input;
+				auto output = threadArguments[threadID].output;
+				std::chrono::duration<double, std::nano> time;
+				auto start = std::chrono::system_clock::now();
+				auto end = std::chrono::system_clock::now();
+				time = start - start;
+				size_t assistedThreadID = threadID; // Assigns first job to be helping itself
+				do {
+
+					// Assign new variables for data for easier reading
+					// ------------------------------------------------
+					size_t			nDataBlocks = threadArguments[assistedThreadID].nDataBlocks;
+					std::mutex*		dataBlockMutex = threadArguments[assistedThreadID].dataBlockMutex;
+					unsigned char*	dataBlockFlags = threadArguments[assistedThreadID].dataBlockFlags;
+					std::size_t*	dataBlockIndices = threadArguments[assistedThreadID].dataBlockIndices;
+
+
+					// Starts to iterate over data blocks of given thread (assisting / not)
+					// --------------------------------------------------------------------
+					size_t dataBlock = 0;
+					while (dataBlock < nDataBlocks) {
+
+						// Lock and check if block is has not been processed already
+						// ---------------------------------------------------------
+						dataBlockMutex->lock();
+
+						if (dataBlockFlags[dataBlock] == 1) {
+							dataBlockFlags[dataBlock] = 0;	// Set as processed
+							dataBlockMutex->unlock();
+							start = std::chrono::system_clock::now();
+							// Process the data block
+							// ----------------------
+							for (size_t elementIndex = dataBlockIndices[dataBlock];
+								elementIndex < dataBlockIndices[dataBlock + 1];
+								elementIndex++)
+								output->at(elementIndex) = elemental.elemental(input->at(elementIndex), args...);
+							auto end = std::chrono::system_clock::now();
+							time += (end - start);
+						}
+						else dataBlockMutex->unlock();
+
+						dataBlock++;
+					}
+
+					// When finished working on the available data blocks of a given thread
+					// -> continue to search for other work
+					// -------------------------------------
+					assistedThreadID = (assistedThreadID + 1) % nthreads;
+				} while (assistedThreadID != threadID);
+				std::cout << "Thread work:" << std::to_string(time.count() / 1000000) << std::endl;
+			}
 		}
 
 		// Constructor
@@ -210,12 +264,12 @@ public:
 
 			// Run threads
 			// -----------
-			for (size_t t = 0; t< nthreads; ++t)
+			for (size_t t = 0; t < nthreads; ++t)
 				THREADS[t] = new std::thread(&MapImplementation<EL>::threadMap<IN, OUT, ARGs...>, this, threadArguments, t, args...);
 
 			// Join threads
 			// ------------
-			for (size_t t = 0; t< nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
+			for (size_t t = 0; t < nthreads; ++t) { THREADS[t]->join(); delete THREADS[t]; }
 
 			// Tidy-up after finish
 			// --------------------
@@ -225,8 +279,8 @@ public:
 
 		// Utility functions for setting options
 		// ------------------------------------
-		void setNumberOfBlocks (size_t nblocks){ this->nDataBlocks = nblocks;}
-		void setNumberOfThreads(size_t nthreads){ this->nthreads = nthreads;}
+		void setNumberOfBlocks(size_t nblocks) { this->nDataBlocks = nblocks; }
+		void setNumberOfThreads(size_t nthreads) { this->nthreads = nthreads; }
 
 		// Friend Functions for Map Implementation Class
 		// ---------------------------------------------
@@ -247,7 +301,7 @@ public:
 */
 template<typename EL>
 MapSkeleton::MapImplementation<EL> __MapWithAccess(EL el, const size_t &threads, const size_t &nblocks) {
-	return MapSkeleton::MapImplementation<EL> (el, threads, nblocks);
+	return MapSkeleton::MapImplementation<EL>(el, threads, nblocks);
 }
 
 template<typename EL>

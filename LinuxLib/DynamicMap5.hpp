@@ -88,57 +88,140 @@ public:
 		// --------------------------------------------
 		template<typename IN, typename OUT, typename ...ARGs>
 		void threadMap(Scoreboard<IN, OUT> *scoreboard, size_t id, ARGs... args) {
-			std::chrono::high_resolution_clock::time_point wstart;
-			std::chrono::high_resolution_clock::time_point wend;
-			double workTime = 1000000.0f;
-			double meanTime = 0.0f;
-			size_t meanElements;
-			size_t elementsCount = 0;
-			size_t elementIndex = 0;
 
-			while (!scoreboard->isInitialised);
-			elementsCount = scoreboard->jobSize;
+			if (id != 1) {
+				std::chrono::high_resolution_clock::time_point wstart;
+				std::chrono::high_resolution_clock::time_point wend;
+				double workTime = 1000000.0f;
+				double meanTime = 0.0f;
+				size_t meanElements;
+				size_t elementsCount = 0;
+				size_t elementIndex = 0;
 
-			while (!scoreboard->isFinished) {
-				// Lock scoreboard
-				while (!scoreboard->scoreboardLock.try_lock()) {
-					if (scoreboard->isFinished) break;
-				}
-				if (scoreboard->isFinished) {
+				while (!scoreboard->isInitialised);
+				elementsCount = scoreboard->jobSize;
+
+				while (!scoreboard->isFinished) {
+					// Lock scoreboard
+					while (!scoreboard->scoreboardLock.try_lock()) {
+						if (scoreboard->isFinished) break;
+					}
+					if (scoreboard->isFinished) {
+						scoreboard->scoreboardLock.unlock();
+						break;
+					}
+
+					workTime = workTime / 1000000;
+					meanElements = elementsCount / workTime;
+					scoreboard->switchWorkload(meanElements);
+
+					// get new data
+					if (scoreboard->curIndex + scoreboard->jobSize < scoreboard->inputSize) {
+						// set new jobSize
+
+						elementsCount = scoreboard->jobSize;
+						elementIndex = scoreboard->curIndex;
+						scoreboard->curIndex += scoreboard->jobSize;
+					}
+					else {
+						elementsCount = scoreboard->inputSize - scoreboard->curIndex;
+						elementIndex = scoreboard->curIndex;
+						scoreboard->curIndex += elementsCount;
+						scoreboard->isFinished = true;
+					}
+					// unlock scoreboard
 					scoreboard->scoreboardLock.unlock();
-					break;
+
+					// Process the data block
+					// ----------------------
+					wstart = std::chrono::high_resolution_clock::now();
+					for (int elementsFinished = 0; elementsFinished < elementsCount; elementsFinished++) {
+						scoreboard->output->at(elementIndex + elementsFinished) = elemental.elemental(scoreboard->input->at(elementIndex + elementsFinished), args...);
+					}
+					wend = std::chrono::high_resolution_clock::now();
+					workTime = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(wend - wstart).count();
+
+
 				}
+			}
 
-				workTime = workTime / 1000000;
-				meanElements = elementsCount / workTime;
-				scoreboard->switchWorkload(meanElements);
 
-				// get new data
-				if (scoreboard->curIndex + scoreboard->jobSize < scoreboard->inputSize) {
-					// set new jobSize
 
-					elementsCount = scoreboard->jobSize;
-					elementIndex = scoreboard->curIndex;
-					scoreboard->curIndex += scoreboard->jobSize;
+
+
+
+
+
+
+
+			else {
+
+				std::chrono::duration<double, std::nano> time;
+				auto start = std::chrono::system_clock::now();
+				auto end = std::chrono::system_clock::now();
+				time = start - start;
+
+				std::chrono::high_resolution_clock::time_point wstart;
+				std::chrono::high_resolution_clock::time_point wend;
+				double workTime = 1000000.0f;
+				double meanTime = 0.0f;
+				size_t meanElements;
+				size_t elementsCount = 0;
+				size_t elementIndex = 0;
+
+				while (!scoreboard->isInitialised);
+				elementsCount = scoreboard->jobSize;
+
+				while (!scoreboard->isFinished) {
+					// Lock scoreboard
+					while (!scoreboard->scoreboardLock.try_lock()) {
+						if (scoreboard->isFinished) break;
+					}
+					if (scoreboard->isFinished) {
+						scoreboard->scoreboardLock.unlock();
+						break;
+					}
+
+					workTime = workTime / 1000000;
+					meanElements = elementsCount / workTime;
+					scoreboard->switchWorkload(meanElements);
+
+					// get new data
+					if (scoreboard->curIndex + scoreboard->jobSize < scoreboard->inputSize) {
+						// set new jobSize
+
+						elementsCount = scoreboard->jobSize;
+						elementIndex = scoreboard->curIndex;
+						scoreboard->curIndex += scoreboard->jobSize;
+					}
+					else {
+						elementsCount = scoreboard->inputSize - scoreboard->curIndex;
+						elementIndex = scoreboard->curIndex;
+						scoreboard->curIndex += elementsCount;
+						scoreboard->isFinished = true;
+					}
+					// unlock scoreboard
+					scoreboard->scoreboardLock.unlock();
+
+					// Process the data block
+					// ----------------------
+					start = std::chrono::system_clock::now();
+
+
+
+					wstart = std::chrono::high_resolution_clock::now();
+					for (int elementsFinished = 0; elementsFinished < elementsCount; elementsFinished++) {
+						scoreboard->output->at(elementIndex + elementsFinished) = elemental.elemental(scoreboard->input->at(elementIndex + elementsFinished), args...);
+					}
+					wend = std::chrono::high_resolution_clock::now();
+					workTime = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(wend - wstart).count();
+
+
+					end = std::chrono::system_clock::now();
+					time += (end - start);
+
 				}
-				else {
-					elementsCount = scoreboard->inputSize - scoreboard->curIndex;
-					elementIndex = scoreboard->curIndex;
-					scoreboard->curIndex += elementsCount;
-					scoreboard->isFinished = true;
-				}
-				// unlock scoreboard
-				scoreboard->scoreboardLock.unlock();
-
-				// Process the data block
-				// ----------------------
-				wstart = std::chrono::high_resolution_clock::now();
-				for (int elementsFinished = 0; elementsFinished < elementsCount; elementsFinished++) {
-					scoreboard->output->at(elementIndex + elementsFinished) = elemental.elemental(scoreboard->input->at(elementIndex + elementsFinished), args...);
-				}
-				wend = std::chrono::high_resolution_clock::now();
-				workTime = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(wend - wstart).count();
-
+				std::cout << "Thread work:" << std::to_string(time.count() / 1000000) << std::endl;
 
 			}
 
@@ -164,7 +247,7 @@ public:
 		}
 
 		template <typename IN, typename OUT, typename ...ARGs>
-		void start_analysis(std::vector<OUT> *output, std::vector<IN> *input, ARGs... args) {
+		void start_analysis(std::vector<OUT> *output, std::vector<IN>* input, ARGs... args) {
 			double workTime = 1000000.0f;
 			size_t meanElements = 0;
 			size_t elementsCount = 0;
@@ -192,17 +275,14 @@ public:
 			size_t newJobSize = 0;
 			duration = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count() * nthreads; // overall communication time
 
-			size_t doneItems = 0;
 			while (duration > 0.0f) {
 				tstart = std::chrono::high_resolution_clock::now();
-				output->at(newJobSize) = elemental.elemental(input->at(newJobSize), args...);
+				((Scoreboard<IN, OUT>*)scoreboard)->output->at(newJobSize) = elemental.elemental(((Scoreboard<IN, OUT>*)scoreboard)->input->at(newJobSize), args...);
 				tend = std::chrono::high_resolution_clock::now();
 				duration -= (tend - tstart).count();
-				doneItems++;
+				newJobSize++;
 			}
-			newJobSize = doneItems - 1;
-
-			((Scoreboard<IN, OUT>*)scoreboard)->curIndex = doneItems;
+			((Scoreboard<IN, OUT>*)scoreboard)->curIndex = newJobSize;
 			((Scoreboard<IN, OUT>*)scoreboard)->jobSize = newJobSize;
 			((Scoreboard<IN, OUT>*)scoreboard)->isInitialised = true;
 
