@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include "Stencil.hpp"
+#include "../Skeletons/Stencil.hpp"
 
 namespace tsv {
 

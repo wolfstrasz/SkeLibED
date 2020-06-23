@@ -2,7 +2,8 @@
 #define _TEST_HEAT_DISTRIBUTION
 
 #include "Pixel.hpp"
-#include "Stencil.hpp"
+#include "../Skeletons/Stencil.hpp"
+
 #include <chrono>
 #include <iostream>
 #include <fstream>

@@ -14,7 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
-#include "Stencil.hpp"
+#include "../Skeletons/Stencil.hpp"
 #include "GameOfLife.hpp"
 
 std::vector<GoL> golIn;

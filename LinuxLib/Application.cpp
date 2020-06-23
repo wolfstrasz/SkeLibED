@@ -6,12 +6,12 @@
 #include "Tests/NBody.hpp"
 #include "Tests/Collatz.hpp"
 #include "Tests/Mandelbrot.hpp"
-#include "TestStencil.hpp"
-#include "TestHeatDistribution.hpp"
-#include "TestStencilVector.hpp"
-#include "TestHeatDistributionVector.hpp"
-#include "TestImageProcessing.hpp"
-#include "TestGoL.hpp"
+#include "Tests/StencilUnitTestArray.hpp"
+#include "Tests/StencilUnitTestVector.hpp"
+#include "Tests/TestHeatDistribution.hpp"
+#include "Tests/TestHeatDistributionVector.hpp"
+#include "Tests/TestImageProcessing.hpp"
+#include "Tests/TestGoL.hpp"
 
 int main(int argc, char* argv[]) {
 
@@ -30,11 +30,11 @@ int main(int argc, char* argv[]) {
 		printf("Use one of the following sets of arguments for different testing\n");
 		printf("Stencil 2D Array Unit tests:\r\t\t\t\t >> ./run.out -1 \n");
 		printf("Stencil Vector Unit tests:  \r\t\t\t\t >> ./run.out -2 \n");
-		printf("Collatz Map test:           \r\t\t\t\t >> ./run.out -2 \n");
-		printf("Mandelbrot Map test:        \r\t\t\t\t >> ./run.out -2 \n");
-		printf("Nbody Map test:             \r\t\t\t\t >> ./run.out -2 \n");
-		printf("Heat equation test:         \r\t\t\t\t >> ./run.out -2 \n");
-		printf("Game of Life test:          \r\t\t\t\t >> ./run.out -2 \n");
+		printf("Collatz Map test:           \r\t\t\t\t >> ./run.out 1 \n");
+		printf("Mandelbrot Map test:        \r\t\t\t\t >> ./run.out 2 \n");
+		printf("Nbody Map test:             \r\t\t\t\t >> ./run.out 3 \n");
+		printf("Heat equation test:         \r\t\t\t\t >> ./run.out 5 \n");
+		printf("Game of Life test:          \r\t\t\t\t >> ./run.out 6 \n");
 		printf("");
 	}
 

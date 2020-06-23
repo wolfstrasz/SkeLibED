@@ -3,7 +3,7 @@
 
 #include "Pixel.hpp"
 #include <string.h>
-#include "Stencil.hpp"
+#include "../Skeletons/Stencil.hpp"
 #include <fstream>
 
 namespace test_img_pr {

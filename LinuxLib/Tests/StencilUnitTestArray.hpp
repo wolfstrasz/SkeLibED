@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include "Stencil.hpp"
+#include "../Skeletons/Stencil.hpp"
 
 namespace ts {
 
@@ -224,9 +224,9 @@ namespace ts {
 		std::cout << "Parallel:   NORMAL \n";
 		stencil(pout, in, pattern, PSLED_NORMAL);
 		equivalenceCheck();
-			printInput();
-			printSeqentialOutput();
-			printParallelOutput();
+		// printInput();
+		// printSeqentialOutput();
+		// printParallelOutput();
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
@@ -237,9 +237,9 @@ namespace ts {
 		std::cout << "Parallel:   WRAP \n";
 		stencil(pout, in, pattern, PSLED_WRAP);
 		equivalenceCheck();
-			printInput();
-			printSeqentialOutput();
-			printParallelOutput();
+		// printInput();
+		// printSeqentialOutput();
+		// printParallelOutput();
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
