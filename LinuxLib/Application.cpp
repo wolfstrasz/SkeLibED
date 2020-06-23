@@ -3,9 +3,9 @@
 #include <chrono>
 #include <fstream>
 
-#include "TestNBody.hpp"
-#include "TestCollatz.hpp"
-#include "TestMandelbrot.hpp"
+#include "Tests/NBody.hpp"
+#include "Tests/Collatz.hpp"
+#include "Tests/Mandelbrot.hpp"
 #include "TestStencil.hpp"
 #include "TestHeatDistribution.hpp"
 #include "TestStencilVector.hpp"

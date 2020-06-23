@@ -194,39 +194,20 @@ public:
 
 
 			size_t newJobSize = 0;
-			// CHANGE 1 :duration = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
 			duration = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count() * nthreads; // overall communication time
-			//duration *= nthreads;
-			//std::cout << duration << "\n";
-			// analyse worksize
-		
-			// CHANGE 2 {
-			// while (duration > 0.0f && newJobSize < input->size()) {
-			// 	tstart = std::chrono::high_resolution_clock::now();
-			// 	output->at(newJobSize) = elemental.elemental(input->at(newJobSize), args...);
-			// 	tend = std::chrono::high_resolution_clock::now();
-			// 	duration -= (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
-			// 	newJobSize++;
-			// }
-			//  CHANGE 2 }
+	
 				tstart = std::chrono::high_resolution_clock::now();
 				for (int i =0; i < nthreads; i++){
 					output->at(newJobSize) = elemental.elemental(input->at(newJobSize), args...);
 				}
 				tend = std::chrono::high_resolution_clock::now();
 				meanTime = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count() / nthreads; // mean time per item
-			// CHANGE 3 : newJobSize = duration/meanTime;
 				newJobSize = duration/meanTime + 1;
-
-			// CHANGE 2: ((Scoreboard<IN, OUT>*)scoreboard)->curIndex = newJobSize;
 				((Scoreboard<IN, OUT>*)scoreboard)->curIndex = nthreads;
-
-			// CHANGE 1 : newJobSize *= nthreads;
 
 			// send work size
 			((Scoreboard<IN, OUT>*)scoreboard)->jobSize = newJobSize;
 			((Scoreboard<IN, OUT>*)scoreboard)->isInitialised = true;
-
 		}
 
 

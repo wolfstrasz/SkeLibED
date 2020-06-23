@@ -169,7 +169,7 @@ public:
 					// -------------------------------------
 					assistedThreadID = (assistedThreadID + 1) % nthreads;
 				} while (assistedThreadID != threadID);
-				std::cout << "Thread work:" << std::to_string(time.count() / 1000000) << std::endl;
+				// std::cout << "Thread work:" << std::to_string(time.count() / 1000000) << std::endl;
 			}
 		}
 

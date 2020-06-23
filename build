@@ -1,4 +1,4 @@
 # Compile using GCC
 echo "Compiling Application using GCC in Cygwin: "
 echo "(LSTDC++)(STD=C++11)(LPTHREADS)..."
-gcc LinuxLib/Application.cpp -lstdc++ -std=c++11 -lpthread -lm -o run.exe
+cc LinuxLib/Tests/Collatz.cpp LinuxLib/Tests/Nbody.cpp LinuxLib/Tests/Mandelbrot.cpp LinuxLib/Application.cpp -o run -lstdc++ -std=c++11 -lpthread -lm
