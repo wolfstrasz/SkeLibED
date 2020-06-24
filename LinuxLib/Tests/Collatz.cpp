@@ -49,7 +49,7 @@ namespace collatz {
 		// ----------------------------------------------------------
 		start = std::chrono::system_clock::now();
 
-		auto dynamicMap = DynamicMap(collatz_elemental, threadcount, itemcount / (blockcount * threadcount));
+		auto dynamicMap = DynamicMap(collatz_elemental, threadcount);
 		dynamicMap(dynMapOut, in, arg);
 
 		end = std::chrono::system_clock::now();

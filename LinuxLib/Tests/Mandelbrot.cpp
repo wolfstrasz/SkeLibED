@@ -70,7 +70,7 @@ namespace mandelbrot {
 		// ----------------------------------------------------------
 		start = std::chrono::system_clock::now();
 
-		auto dynamicMap = DynamicMap(mandelbrot_elemental, threadcount, blockcount);
+		auto dynamicMap = DynamicMap(mandelbrot_elemental, threadcount);
 		dynamicMap(dynMapOut, in, arg, ixc, iyc, itermax);
 
 		end = std::chrono::system_clock::now();
