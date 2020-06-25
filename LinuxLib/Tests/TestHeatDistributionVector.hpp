@@ -175,7 +175,6 @@ namespace thdv {
 	
 		std::cout << "Stencil::Parallel::" << std::to_string(time.count()) << std::endl;
 		}
-		//printPPM(dim, "Parallel", maxiters, threadcount);
 	}
 
 

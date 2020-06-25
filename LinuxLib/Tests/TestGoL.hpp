@@ -195,35 +195,6 @@ void goltest(int threads, int xdim, int ydim, int iter, int pat_size) {
 	std::cout << "Stencil::NORMAL_OPT_3::GOL::" << std::to_string(overalltime / tests) << std::endl;
 	//golPrintIn(xdim,ydim);
 
-	overalltime = 0.0f;
-	// TEST NORMAL OPT 4 GOL TIME
-	//std::cout << "RUNNING NORMAL OPT GOL" << std::endl;
-	for (int t = 0; t < tests; t++) {
-		std::cout << "Test (" << t << ")...\n";
-		initGOL(xdim, ydim);
-		auto start = std::chrono::system_clock::now();
-		for (int i = 0; i < iter; i += 2) {
-
-			// iterate forwards
-			golStencil(golOut, golIn, golPattern, PSLED_NORMAL_OPT4, xdim, ydim);
-
-			//	golPrintOut();
-				// iterate backwards
-			golStencil(golIn, golOut, golPattern, PSLED_NORMAL_OPT4, xdim, ydim);
-			//golPrintIn();
-
-		}
-		auto end = std::chrono::system_clock::now();
-		std::chrono::duration<double, std::milli> time = end - start;
-		overalltime += time.count();
-	}
-
-	std::cout << "Stencil::NORMAL_OPT_4::GOL::" << std::to_string(overalltime / tests) << std::endl;
-
-
-	//
-	//golPrintIn(xdim,ydim);
-
 }
 
 #endif // !_TEST_GOL_HPP
