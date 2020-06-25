@@ -6,10 +6,8 @@
 #include "Tests/NBody.hpp"
 #include "Tests/Collatz.hpp"
 #include "Tests/Mandelbrot.hpp"
-// #include "Tests/StencilUnitTestArray.hpp"
-#include "Tests/StencilUnitTestVector.hpp"
-// #include "Tests/TestHeatDistribution.hpp"
-#include "Tests/TestHeatDistributionVector.hpp"
+#include "Tests/StencilUnitTest.hpp"
+#include "Tests/TestHeatDistribution.hpp"
 #include "Tests/TestImageProcessing.hpp"
 #include "Tests/TestGoL.hpp"
 
@@ -36,6 +34,7 @@ int main(int argc, char* argv[]) {
 		printf("Heat equation test:         \r\t\t\t\t >> ./run.out 5 \n");
 		printf("Game of Life test:          \r\t\t\t\t >> ./run.out 6 \n");
 		printf("");
+		return 0;
 	}
 
 	func = strtol(argv[index++], nullptr, 0);

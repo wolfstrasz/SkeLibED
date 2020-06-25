@@ -97,11 +97,10 @@ public:
 			}
 		}
 
-
+		// Scoreboard access time analysis - calculate time a thread will access the scoreboard	
+		// and the amount of work that can be finished for that time
 		template <typename IN, typename OUT, typename ...ARGs>
 		void start_analysis(Scoreboard<IN, OUT> * scoreboard, std::vector<OUT> *output, std::vector<IN> *input, ARGs... args) {
-			// Scoreboard access time analysis - calculate time a thread will access the scoreboard
-			// -----------------------------------------------------------------------------------
 			
 			// Data that each thread will use in communication with the scoreboard
 			double workTime = 1000000.0f;
@@ -124,8 +123,6 @@ public:
 
 			// Time for work should be as equal as possible to the time each thread accesses the scoreboard in a row
 			// T_work = T_thread_communication * Nthreads
-			// -----------------------------------------------------------------------------------------------------
-
 			double t_thread_communication = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count();
 			double t_work =  t_thread_communication* nthreads; // overall communication time
 	
@@ -149,8 +146,7 @@ public:
 		}
 
 	public:
-		// Paranthesis operator: call function
-		// -----------------------------------
+		// User call function
 		template<typename IN, typename OUT, typename ...ARGs>
 		void operator()(std::vector<OUT> &output, std::vector<IN> &input, ARGs... args) {
 			auto scoreboard = new Scoreboard<IN, OUT>(&input, &output, nthreads);

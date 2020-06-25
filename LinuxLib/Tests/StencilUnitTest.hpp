@@ -265,25 +265,12 @@ namespace tsv {
 		std::cout << "\n###########################################\n";
 		clearOutputs();
 
-		// TEST: NORMAL OPT 2
-		// ----------------------------------------------------------
-		std::cout << "Sequential: NORMAL \n";
-		sequentialNormalTest();
-		std::cout << "Parallel:   NORMAL OPT 2\n";
-		stencil(pout, in, pattern, PSLED_NORMAL_OPT2, tsvXDSIZE, tsvYDSIZE);
-		equivalenceCheck();
-		// printInput();
-		// printSeqentialOutput();
-		// printParallelOutput();
-		std::cout << "\n###########################################\n";
-		clearOutputs();
-
 		// TEST: NORMAL OPT 3
 		// ----------------------------------------------------------
 		std::cout << "Sequential: NORMAL \n";
 		sequentialNormalTest();
 		std::cout << "Parallel:   NORMAL OPT 3\n";
-		stencil(pout, in, pattern, PSLED_NORMAL_OPT3, tsvXDSIZE, tsvYDSIZE);
+		stencil(pout, in, pattern, PSLED_OPT_NORMAL, tsvXDSIZE, tsvYDSIZE);
 		equivalenceCheck();
 		// printInput();
 		// printSeqentialOutput();
